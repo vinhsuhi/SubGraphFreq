@@ -1,0 +1,2 @@
+python graphsage/visualize.py --embed_file visualize/karate_siamese_permutation/unsup/graphsage_mean_0.01/source.emb --out_file visualize/karate_siamese_permutation/unsup/graphsage_mean_0.01/source.tsv
+python graphsage/visualize.py --embed_file visualize/karate_siamese_permutation/unsup/graphsage_mean_0.01/target.emb --out_file visualize/karate_siamese_permutation/unsup/graphsage_mean_0.01/target.tsv

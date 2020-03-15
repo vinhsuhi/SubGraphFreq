@@ -1,0 +1,37 @@
+############################### permute karate using vecmap ###############
+OUTDIR=visualize/karate_siamese_permutation
+MODEL=graphsage_mean
+DS1=$HOME/dataspace/graph/karate
+PREFIX1=karate
+DS2=$HOME/dataspace/graph/karate/permutation
+PREFIX2=karate
+TRAIN_RATIO=0.5
+LR=0.01
+
+# python data_utils/shuffle_graph.py --input_dir ${DS1} --out_dir ${DS2} --prefix ${PREFIX2}
+python data_utils/split_dict.py --input ${DS2}/dictionaries/groundtruth --out_dir ${DS2}${RATIO}/dictionaries/ --split ${TRAIN_RATIO}
+
+############################### compare karate vs karate using vecmap ###############
+source activate pytorch
+
+# normal save to original 
+python -m graphsage.siamese_unsupervised_train --epochs 100 --model ${MODEL} \
+    --prefix_source ${DS1}/graphsage/${PREFIX1} \
+    --prefix_target ${DS2}/graphsage/${PREFIX2} \
+    --identity_dim 64 \
+    --batch_size 10 \
+    --dim_1 128 \
+    --dim_2 128 \
+    --map_fc identity \
+    --samples_1 5 --samples_2 5 \
+    --learning_rate ${LR} \
+    --save_embeddings True --base_log_dir ${OUTDIR} \
+    --groundtruth ${DS2}/dictionaries/groundtruth \
+    --train_dict_dir ${DS2}/dictionaries/node,split=${TRAIN_RATIO}.train.dict \
+    --val_dict_dir ${DS2}/dictionaries/node,split=${TRAIN_RATIO}.test.dict \
+    --embedding_loss_weight 1 --mapping_loss_weight 0 \
+    --validate_iter 100 --neg_sample_size 2 \
+    --max_degree 8 \
+    --cuda True
+
+###################################################################################
