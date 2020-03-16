@@ -4,7 +4,6 @@ from __future__ import print_function
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-from embedding_model import FA_GCN
 import torch
 from tqdm import tqdm
 import torch.nn.functional as F
@@ -18,12 +17,10 @@ from networkx.readwrite import json_graph
 import time
 import argparse
 
-from graphsage_simple.graphsage.dataset import Dataset 
+from graphsage_files.graphsage_simple.graphsage.dataset import Dataset 
 import random
-from graphsage.unsupervised_models import UnsupervisedGraphSage
-from graphsage.neigh_samplers import UniformNeighborSampler
 from networkx.readwrite import json_graph
-from graphsage_simple.graphsage.model import run_graph
+from graphsage_files.graphsage_simple.graphsage.model import run_graph
 
 #from graphsage-simple.model import run_graph
 def load_data(prefix, supervised=False, max_degree=25, multiclass=False, use_random_walks=True, load_walks=True, num_walk=50, walk_len=5):
@@ -35,54 +32,20 @@ def load_data(prefix, supervised=False, max_degree=25, multiclass=False, use_ran
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Query embedding")
-    parser.add_argument('--embedding_model', default="unsup/graphsage_mean_0.001000/")
+    parser = argparse.ArgumentParser(description="Graphsage embedding")
     parser.add_argument('--seed', default= 42, type = int)
-    parser.add_argument('--prefix', default= "dataspace/bioDMLC/graphsage/bioDMLC")
-    # parser.add_argument('--prefix_subgraph', default= "dataspace/graph/ppi/graphsage/sub_graph")
-    parser.add_argument('--batch_size', default = 60  , type = int)
-    parser.add_argument('--print_every', default = 10,  type = int)
-    parser.add_argument('--identity_dim', default = 0,  type = int)
-    parser.add_argument('--samples_1', default = 8, type = int)
-    parser.add_argument('--samples_2', default = 4, type = int) 
+    parser.add_argument('--prefix', default= "graphsage_files/dataspace/bioDMLC/graphsage/bioDMLC")
+    parser.add_argument('--batch_size', default = 500  , type = int)
     parser.add_argument('--learning_rate', default = 0.001, type = float)
-    parser.add_argument('--base_log_dir', default = "visualize/karate")
-    parser.add_argument('--neg_sample_size', default = 2, type = int)
     parser.add_argument('--max_degree', default = 5, type = int)
-    # parser.add_argument('--cuda', default = True, type = bool)
     parser.add_argument('--cuda', action = "store_true")
     parser.add_argument('--dim_1', default = 128, type = int)
     parser.add_argument('--dim_2', default = 128, type = int)
-    parser.add_argument('--dir', default = './dataspace/graph/')
-    parser.add_argument('--random_delete_nodes', default = 0.0, type = float)
-
-
-
-    parser.add_argument('--model',            default='graphsage_mean',help='Model names. See README for possible values.')
-    parser.add_argument('--multiclass',       default=False,           help='Whether use 1-hot labels or indices.', type=bool)
-    parser.add_argument('--concat',           default=True,            help='Whether to concat', type=bool)
     parser.add_argument('--epochs',           default=100,              help='Number of epochs to train.', type=int)
-    parser.add_argument('--dropout',          default=0.0,             help='Dropout rate (1 - keep probability).', type=float)
-    parser.add_argument('--weight_decay',     default=0.0,             help='Weight for l2 loss on embedding matrix.', type=float)
-    parser.add_argument('--samples_3',        default=0,               help='Number of users samples in layer 3. (Only for mean model)', type=int)
-    parser.add_argument('--random_context',   default=False,           help='Whether to use random context or direct edges', type=bool)
-    parser.add_argument('--max_total_steps',  default=10**10,          help="Maximum total number of iterations", type=int)
-    parser.add_argument('--validate_iter',    default=5000,            help="How often to run a validation minibatch.", type=int)
-    parser.add_argument('--validate_batch_size', default=256,          help="How many nodes per validation sample.", type=int)
-    parser.add_argument('--save_embeddings',  default=False,           help="Whether to save val embeddings.", type=bool)
-    parser.add_argument('--use_pre_train',     default=False,          help="Whether to use pretrain embeddings.", type=bool)
     parser.add_argument('--use_random_walks',  default=False,          help="Whether to use random walk.", type=bool)
     parser.add_argument('--load_walks',        default=False,          help="Whether to load walk file.", type=bool)
     parser.add_argument('--num_walk',         default=50,              help="Number of walk from each node.", type=int)
     parser.add_argument('--walk_len',         default=5,               help="Length of each walk.", type=int)
-    parser.add_argument('--load_embedding_samples_dir',  default=None, help="Whether to load embedding samples.")
-    parser.add_argument('--save_embedding_samples',  default=False,    help="Whether to save embedding samples", type=bool)
-    parser.add_argument('--load_adj_dir',     default=None,            help="Adj dir load")
-    parser.add_argument('--load_model_dir',   default=None,            help="model dir load")
-    parser.add_argument('--save_model',       default=False,           help="Whether to save model", type=bool)
-    parser.add_argument('--no_feature',       default=False,           help='whether to use features')
-    parser.add_argument('--normalize_embedding', default=True,        help='whether to use features')
-    parser.add_argument('--max_subgraph_nodes', default=100, type=int,        help='whether to use features')
 
     return parser.parse_args()
 
@@ -261,11 +224,12 @@ if __name__ == "__main__":
     graphsage_G = nx.Graph()
     graphsage_G.add_edges_from([(str(edge[0]),str(edge[1])) for edge in G.edges()])
 
-    features = np.eye(num_nodes, dtype = float) #######  Cần chỉnh sửa cách khởi tạo feature
+
+    features = np.ones((num_nodes,10), dtype = float) #######  Cần chỉnh sửa cách khởi tạo feature
     
-    id2idx = {node:i for (i,node) in enumerate(graphsage_G.nodes())}
+    id2idx = {node:int(node) for node in graphsage_G.nodes()}
     
-    save_graph(features, graphsage_G, id2idx, 'bioDMLC', 'dataspace/bioDMLC')
+    save_graph(features, graphsage_G, id2idx, 'bioDMLC', 'graphsage_files/dataspace/bioDMLC')
 
     # graphsage_embedding:
     # load data
@@ -273,6 +237,5 @@ if __name__ == "__main__":
                 use_random_walks=args.use_random_walks, load_walks=False, num_walk=args.num_walk, walk_len=args.walk_len)
 
     embeddings, emb_model = run_graph(graph_data, args)
-    pdb.set_trace()
 
     evaluate(embeddings, center1, center2, center3)
