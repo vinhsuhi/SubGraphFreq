@@ -13,7 +13,7 @@ import pdb
 version_info = list(map(int, nx.__version__.split('.')))
 major = version_info[0]
 minor = version_info[1]
-assert (major <= 1) and (minor <= 11), "networkx major version > 1.11"
+# assert (major <= 1) and (minor <= 11), "networkx major version > 1.11"
 
 class Dataset:
 
@@ -85,7 +85,7 @@ class Dataset:
         G_data = json.load(open(prefix + "-G.json"))
         G = json_graph.node_link_graph(G_data)
 
-        if isinstance(G.nodes()[0], int):
+        if isinstance(list(G.nodes)[0], int):
             def conversion(n): return int(n)
         else:
             def conversion(n): return n
@@ -95,15 +95,15 @@ class Dataset:
         broken_count = 0
         self.num_total_node = 0
 
-        for node in G.nodes():
-            if not 'val' in G.node[node] or not 'test' in G.node[node]:
-                G.remove_node(node)
-                broken_count += 1
+        # for node in list(G.nodes):
+        #     if not 'val' in G.node[node] or not 'test' in G.node[node]:
+        #         G.remove_node(node)
+        #         broken_count += 1
 
         print("Removed {:d} nodes that lacked proper annotations due to networkx versioning issues".format(broken_count))
         self.G = G
         self.conversion = conversion
-        self.num_total_node = len(G.nodes())
+        self.num_total_node = len(list(G.nodes))
         print("File loaded successfully")
 
         ## Load feature data
@@ -143,7 +143,7 @@ class Dataset:
                 for idx in self.class_map.keys():
                     self.labels[self.id_map[idx]] = np.argmax(self.class_map[idx])
 
-            self.num_class = len(self.class_map[G.nodes()[0]])
+            self.num_class = len(self.class_map[list(G.nodes)[0]])
             print("File loaded successfully")
         else:
             print("Class map doesn't exist")
@@ -158,13 +158,13 @@ class Dataset:
 
         # Categorize train, val and test nodes
         # Using id_maps.keys to control the node index
-        self.nodes_ids = np.array([n for n in G.node.keys()])
-        self.all_edges = np.array([[self.id_map[node1],self.id_map[node2]] for (node1,node2) in self.G.edges()])
+        self.nodes_ids = np.array(list(G.nodes()))
+        self.all_edges = np.array([[self.id_map[node1],self.id_map[node2]] for (node1,node2) in list(self.G.edges)])
 
         if not train_all_edge:
-            self.train_nodes_ids = np.array([n for n in self.nodes_ids if not G.node[n]['val'] and not G.node[n]['test']])
-            self.val_nodes_ids = np.array([n for n in self.nodes_ids if G.node[n]['val']])
-            self.test_nodes_ids = np.array([n for n in self.nodes_ids if G.node[n]['test']])
+            self.train_nodes_ids = np.array([n for n in self.nodes_ids if not G.nodes[n]['val'] and not G.nodes[n]['test']])
+            self.val_nodes_ids = np.array([n for n in self.nodes_ids if G.nodes[n]['val']])
+            self.test_nodes_ids = np.array([n for n in self.nodes_ids if G.nodes[n]['test']])
         else:
             self.train_nodes_ids = np.array([n for n in self.nodes_ids])
             self.val_nodes_ids = np.array([n for n in self.nodes_ids])
@@ -177,9 +177,9 @@ class Dataset:
 
         ## Make sure the graph has edge train_removed annotations
         ## (some datasets might already have this..)
-        for edge in G.edges():
-            if (G.node[edge[0]]['val'] or G.node[edge[1]]['val'] or
-                G.node[edge[0]]['test'] or G.node[edge[1]]['test']):
+        for edge in list(G.edges):
+            if (G.nodes[edge[0]]['val'] or G.nodes[edge[1]]['val'] or
+                G.nodes[edge[0]]['test'] or G.nodes[edge[1]]['test']):
                 G[edge[0]][edge[1]]['train_removed'] = True
             else:
                 G[edge[0]][edge[1]]['train_removed'] = False
@@ -427,7 +427,7 @@ class Dataset:
             edges = self.walks
         else:
             print("Use original edges")
-            edges = self.G.edges()
+            edges = list(self.G.edges)
 
         train_edges = []
         # val_edges = []
@@ -435,7 +435,7 @@ class Dataset:
         missing = 0
         print("Generate train edges")
         for n1, n2 in edges:
-            if not n1 in self.G.node or not n2 in self.G.node:
+            if not n1 in self.G.nodes or not n2 in self.G.nodes:
                 missing += 1
                 continue
             if (self.id_map[n1] in self.train_nodes) and (self.id_map[n2] in self.train_nodes):
@@ -461,7 +461,7 @@ class Dataset:
             edges = self.walks
         else:
             print("Use original edges")
-            edges = self.G.edges()
+            edges = list(self.G.edges)
         train_edges = []
         print("Generate train edges")
         for n1, n2 in edges:

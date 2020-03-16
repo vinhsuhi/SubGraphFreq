@@ -81,7 +81,7 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
 # for graphsage dataset creation:
 def save_graph(sub_feats, G, id_map, dataset_name, dir):
         print("Saving Graph")
-        num_nodes = len(G.nodes())
+        num_nodes = len(list(G.nodes))
         rand_indices = np.random.permutation(num_nodes)
         train = rand_indices[:int(num_nodes * 0.81)]
         val = rand_indices[int(num_nodes * 0.81):int(num_nodes * 0.9)]
@@ -121,9 +121,9 @@ def evaluate(embeddings, center1, center2, center3):
     arg_sort = simi_center1.argsort()[::-1]
     print("The three centers are: ")
     print(center1, center2, center3)
-    print("Seven cloest nodes to the 'center1' is: ")
+    print("Seven cloeslist(t nodes)o the 'center1' is: ")
     print(arg_sort[:7])
-    print("The similarity values between those nodes and 'center1' is: ")
+    print("The similarity values between thoslist(e nodes)nd 'center1' is: ")
     print(simi_center1[arg_sort][:7])
 
 
@@ -139,44 +139,44 @@ if __name__ == "__main__":
     path = 'bio-DM-LC.edges'
     G = read_graph(path)
 
-    max_node_label = max(G.nodes()) + 1
+    max_node_label = max(list(G.nodes)) + 1
 
     edges1, center1 = create_small_graph(max_node_label)
     G.add_edges_from(edges1)
-    max_node_label = max(G.nodes()) + 1
+    max_node_label = max(list(G.nodes)) + 1
 
     nodes_to_concat1 = np.array([16, 6, 4, 5, 10, 11, 12, 21, 17, 26, 14, 20, 18, 15, 22, 24, 25, 23]) + max_node_label
-    pseudo_edges1 = connect_two_graphs(nodes_to_concat1, G.nodes())
+    pseudo_edges1 = connect_two_graphs(nodes_to_concat1, list(G.nodes))
     G.add_edges_from(pseudo_edges1)
 
     edges2, center2 = create_small_graph(max_node_label)
     G.add_edges_from(edges2)
-    max_node_label = max(G.nodes()) + 1
+    max_node_label = max(list(G.nodes)) + 1
 
     nodes_to_concat2 = np.array([16, 6, 4, 5, 10, 11, 12, 21, 17, 26, 14, 20, 18, 15, 22, 24, 25, 23]) + max_node_label
-    pseudo_edges2 = connect_two_graphs(nodes_to_concat2, G.nodes())
+    pseudo_edges2 = connect_two_graphs(nodes_to_concat2, list(G.nodes))
     G.add_edges_from(pseudo_edges2)
 
     edges3, center3 = create_small_graph(max_node_label)
     G.add_edges_from(edges3)
 
     nodes_to_concat3 = np.array([16, 6, 4, 5, 10, 11, 12, 21, 17, 26, 14, 20, 18, 15, 22, 24, 25, 23]) + max_node_label
-    pseudo_edges3 = connect_two_graphs(nodes_to_concat3, G.nodes())
+    pseudo_edges3 = connect_two_graphs(nodes_to_concat3, list(G.nodes))
     G.add_edges_from(pseudo_edges3)
 
 
-    print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
+    print("Number olist(f nodes){}, number of edges: {}, max: {}".format(len(list(G.nodes)), len(list(G.edges)), max(list(G.nodes))))
 
-    num_nodes = len(G.nodes())
+    num_nodes = len(list(G.nodes))
 
     ############################## for graphsage embedding ############################
     graphsage_G = nx.Graph()
-    graphsage_G.add_edges_from([(str(edge[0]),str(edge[1])) for edge in G.edges()])
+    graphsage_G.add_edges_from([(str(edge[0]),str(edge[1])) for edge in list(G.edges)])
 
 
     features = np.ones((num_nodes,10), dtype = float) #######  Cần chỉnh sửa cách khởi tạo feature
     
-    id2idx = {node:int(node) for node in graphsage_G.nodes()}
+    id2idx = {node:int(node) for node in list(graphsage_G.nodes)}
     
     save_graph(features, graphsage_G, id2idx, 'bioDMLC', 'graphsage_files/dataspace/bioDMLC')
 
