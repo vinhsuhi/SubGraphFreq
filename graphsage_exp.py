@@ -23,13 +23,6 @@ from networkx.readwrite import json_graph
 from graphsage_files.graphsage_simple.graphsage.model import run_graph
 
 #from graphsage-simple.model import run_graph
-def load_data(prefix, supervised=False, max_degree=25, multiclass=False, use_random_walks=True, load_walks=True, num_walk=50, walk_len=5):
-    
-    dataset = Dataset()
-    dataset.load_data(prefix=prefix, normalize=True, supervised=False, max_degree=max_degree, multiclass=multiclass, use_random_walks = use_random_walks, load_walks=load_walks, num_walk=num_walk, walk_len=walk_len)
-    return dataset
-
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Graphsage embedding")
@@ -48,8 +41,13 @@ def parse_args():
     parser.add_argument('--walk_len',         default=5,               help="Length of each walk.", type=int)
 
     return parser.parse_args()
+    
 
-
+def load_data(prefix, supervised=False, max_degree=25, multiclass=False, use_random_walks=True, load_walks=True, num_walk=50, walk_len=5):
+    
+    dataset = Dataset()
+    dataset.load_data(prefix=prefix, normalize=True, supervised=False, max_degree=max_degree, multiclass=multiclass, use_random_walks = use_random_walks, load_walks=load_walks, num_walk=num_walk, walk_len=walk_len)
+    return dataset
 
 def create_small_graph(max_node_label):
     karate_graph = nx.karate_club_graph()
@@ -71,14 +69,6 @@ def read_graph(path):
     G.add_edges_from(edges)
     return G
 
-def create_adj(edges, num_nodes):
-    adj = np.zeros((num_nodes, num_nodes))
-    for edge in edges:
-        adj[edge[0], edge[1]] = 1 
-        adj[edge[1], edge[0]] = 1
-    return adj
-
-
 def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     average_deg = 3
     pseudo_edges = []
@@ -87,47 +77,6 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
             to_cat = np.random.choice(ori_nodes, 3)
             pseudo_edges += [[node, ele] for ele in to_cat]
     return pseudo_edges
-
-
-def loss_function(output, adj):
-    output = F.normalize(output)
-    reconstruct_adj = torch.matmul(output, output.t())
-    loss = ((reconstruct_adj - adj) ** 2).mean()
-    return loss
-
-
-def learn_embedding(features, adj):
-    cuda = False
-    num_GCN_blocks = 2
-    input_dim = features.shape[1]
-    output_dim = 20
-    model = FA_GCN('tanh', num_GCN_blocks, input_dim, output_dim)
-    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
-    features = torch.FloatTensor(features)
-    adj = torch.FloatTensor(adj)
-    if cuda:
-        features = features.cuda()
-        adj = adj.cuda()
-        model = model.cuda()
-
-    num_epochs = 10
-
-    for epoch in tqdm(range(num_epochs), desc="Training..."):
-        optimizer.zero_grad()
-        outputs = model.forward(adj, features)
-        loss = loss_function(outputs[-1], adj)
-        print("loss: {:.4f}".format(loss.data))
-        loss.backward()
-        optimizer.step()
-    
-    embeddings = torch.cat(outputs, dim=1)
-    embeddings = embeddings.detach().cpu().numpy()
-    return embeddings
-
-
-
-def save_to_tsv(path, embeddings, labels):
-    np.savetxt()
 
 # for graphsage dataset creation:
 def save_graph(sub_feats, G, id_map, dataset_name, dir):
