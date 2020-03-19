@@ -24,6 +24,17 @@ def create_small_graph(max_node_label, kara_center=2, nodes_to_remove=[]):
     return edges, center, mapping
 
 
+def create_small_graph2(graph, max_node_label, center):
+    mapping = {node: i for i, node in enumerate(graph.nodes())}
+    center = mapping[center] + max_node_label
+    graph = nx.relabel_nodes(graph, mapping)
+    edges = graph.edges()
+    edges = np.array(edges)
+    edges += max_node_label
+    return edges, center, mapping
+
+
+
 def read_graph(path):
     edges = []
     with open(path, 'r', encoding='utf-8') as file:

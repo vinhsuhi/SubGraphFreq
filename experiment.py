@@ -5,7 +5,7 @@ from models.GCN import FA_GCN
 import torch
 from tqdm import tqdm
 import torch.nn.functional as F
-from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph
+from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2
 from models.graphsage.model import run_graph
 import argparse
 
@@ -64,6 +64,7 @@ def learn_embedding(features, adj):
 
 def gen_data(path, kara_center):
     G = read_graph(path)
+    G_mouse = read_graph('data/mouse.edges')
     max_node_label = max(G.nodes()) + 1
 
     # nodes_to_remove = [4, 5, 6, 19, 21, 31, 23, 13, 7 , 15, 22, 23, 25, 28, 3, 29, 17, 31, 32, 1, 3, 24, 8, 9]
@@ -72,6 +73,7 @@ def gen_data(path, kara_center):
 
     print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
 
+    # 1
     edges1, center1, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
     G.add_edges_from(edges1)
     max_node_label = max(G.nodes()) + 1
@@ -80,6 +82,7 @@ def gen_data(path, kara_center):
     pseudo_edges1 = connect_two_graphs(nodes_to_concat1, G.nodes())
     G.add_edges_from(pseudo_edges1)
 
+    # 2
     edges2, center2, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
     G.add_edges_from(edges2)
     max_node_label = max(G.nodes()) + 1
@@ -88,14 +91,46 @@ def gen_data(path, kara_center):
     pseudo_edges2 = connect_two_graphs(nodes_to_concat2, G.nodes())
     G.add_edges_from(pseudo_edges2)
 
+    # 3
     edges3, center3, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
     G.add_edges_from(edges3)
+    max_node_label = max(G.nodes()) + 1
 
     nodes_to_concat3 = np.array([mapping[ele] for ele in [3]]) + max_node_label
     pseudo_edges3 = connect_two_graphs(nodes_to_concat3, G.nodes())
     G.add_edges_from(pseudo_edges3)
+
+    # 11
+    edges4, center11, mapping = create_small_graph2(G_mouse, max_node_label, 9)
+    G.add_edges_from(edges4)
+    max_node_label = max(G.nodes()) + 1
+
+    nodes_to_concat4 = np.array([mapping[ele] for ele in [1]]) + max_node_label
+    pseudo_edges4 = connect_two_graphs(nodes_to_concat4, G.nodes())
+    G.add_edges_from(pseudo_edges4)
+
+    # 22
+    edges5, center22, mapping = create_small_graph2(G_mouse, max_node_label, 9)
+    G.add_edges_from(edges5)
+    max_node_label = max(G.nodes()) + 1
+
+    nodes_to_concat5 = np.array([mapping[ele] for ele in [1]]) + max_node_label
+    pseudo_edges5 = connect_two_graphs(nodes_to_concat5, G.nodes())
+    G.add_edges_from(pseudo_edges5)
+
+
+    # 11
+    edges6, center33, mapping = create_small_graph2(G_mouse, max_node_label, 9)
+    G.add_edges_from(edges6)
+    max_node_label = max(G.nodes()) + 1
+
+    nodes_to_concat6 = np.array([mapping[ele] for ele in [1]]) + max_node_label
+    pseudo_edges6 = connect_two_graphs(nodes_to_concat6, G.nodes())
+    G.add_edges_from(pseudo_edges6)
+
+
     print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
-    return G, center1, center2, center3
+    return G, center1, center2, center3, center11, center22, center33
 
 
 def create_data_for_GCN(G):
@@ -122,7 +157,7 @@ if __name__ == "__main__":
     kara_center = 2
     path = 'data/bio-DM-LC.edges'
 
-    G , center1, center2, center3 = gen_data(path, kara_center)
+    G , center1, center2, center3, center11, center22, center33 = gen_data(path, kara_center)
 
     if args.model == "GCN":
         features, adj = create_data_for_GCN(G)
@@ -131,3 +166,9 @@ if __name__ == "__main__":
         graph_data = create_data_for_Graphsage(G)
         embeddings = run_graph(graph_data, args)
     success = evaluate(embeddings, center1, center2, center3)
+
+    success = evaluate(embeddings, center11, center22, center33)
+
+    print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1] * embeddings[center11])))
+
+
