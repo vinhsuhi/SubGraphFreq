@@ -1,48 +1,29 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-from embedding_model import FA_GCN
+from models.GCN import FA_GCN
 import torch
 from tqdm import tqdm
 import torch.nn.functional as F
+from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph
+from models.graphsage.model import run_graph
+import argparse
 
 
-def create_small_graph(max_node_label):
-    karate_graph = nx.karate_club_graph()
-    edges = karate_graph.edges()
-    edges = np.array(edges)
-    edges += max_node_label
-    center = 2 + max_node_label
-    return edges, center
 
-def read_graph(path):
-    edges = []
-    with open(path, 'r', encoding='utf-8') as file:
-        for line in file:
-            data_line = line.split()
-            edges.append((int(data_line[0]), int(data_line[1])))
-    file.close()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Graphsage embedding")
+    parser.add_argument('--model', type=str, default="GCN", help="GCN or Graphsage")
+    parser.add_argument('--prefix', default= "data/bioDMLC/graphsage/bioDMLC")
+    parser.add_argument('--batch_size', default = 500  , type = int)
+    parser.add_argument('--learning_rate', default = 0.001, type = float)
+    parser.add_argument('--cuda', action = "store_true")
+    parser.add_argument('--dim_1', default = 64, type = int)
+    parser.add_argument('--dim_2', default = 64, type = int)
+    parser.add_argument('--epochs', default=3,   help='Number of epochs to train.', type=int)
 
-    G = nx.Graph() 
-    G.add_edges_from(edges)
-    return G
-
-def create_adj(edges, num_nodes):
-    adj = np.zeros((num_nodes, num_nodes))
-    for edge in edges:
-        adj[edge[0], edge[1]] = 1 
-        adj[edge[1], edge[0]] = 1
-    return adj
-
-
-def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
-    average_deg = 3
-    pseudo_edges = []
-    for node in nodes_to_concat:
-        if np.random.rand() < prob_each:
-            to_cat = np.random.choice(ori_nodes, 3)
-            pseudo_edges += [[node, ele] for ele in to_cat]
-    return pseudo_edges
+    return parser.parse_args()
+    
 
 
 def loss_function(output, adj):
@@ -66,7 +47,7 @@ def learn_embedding(features, adj):
         adj = adj.cuda()
         model = model.cuda()
 
-    num_epochs = 10
+    num_epochs = 3
 
     for epoch in tqdm(range(num_epochs), desc="Training..."):
         optimizer.zero_grad()
@@ -81,62 +62,72 @@ def learn_embedding(features, adj):
     return embeddings
 
 
-
-def save_to_tsv(path, embeddings, labels):
-    np.savetxt()
-
-
-def evaluate(embeddings, center1, center2, center3):
-    simi = embeddings.dot(embeddings.T)
-
-    simi_center1 = simi[center1]
-    arg_sort = simi_center1.argsort()[::-1]
-    print("The three centers are: ")
-    print(center1, center2, center3)
-    print("Seven cloest nodes to the 'center1' is: ")
-    print(arg_sort[:7])
-    print("The similarity values between those nodes and 'center1' is: ")
-    print(simi_center1[arg_sort][:7])
-
-
-
-if __name__ == "__main__":
-    path = 'bio-DM-LC.edges'
+def gen_data(path, kara_center):
     G = read_graph(path)
-
     max_node_label = max(G.nodes()) + 1
 
-    edges1, center1 = create_small_graph(max_node_label)
+    # nodes_to_remove = [4, 5, 6, 19, 21, 31, 23, 13, 7 , 15, 22, 23, 25, 28, 3, 29, 17, 31, 32, 1, 3, 24, 8, 9]
+    # nodes_to_remove = [23, 25, 28, 3, 29, 17, 31, 32, 1]
+    nodes_to_remove = []
+
+    print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
+
+    edges1, center1, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
     G.add_edges_from(edges1)
     max_node_label = max(G.nodes()) + 1
 
-    nodes_to_concat1 = np.array([16, 6, 4, 5, 10, 11, 12, 21, 17, 26, 14, 20, 18, 15, 22, 24, 25, 23]) + max_node_label
+    nodes_to_concat1 = np.array([mapping[ele] for ele in [3]]) + max_node_label
     pseudo_edges1 = connect_two_graphs(nodes_to_concat1, G.nodes())
     G.add_edges_from(pseudo_edges1)
 
-    edges2, center2 = create_small_graph(max_node_label)
+    edges2, center2, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
     G.add_edges_from(edges2)
     max_node_label = max(G.nodes()) + 1
 
-    nodes_to_concat2 = np.array([16, 6, 4, 5, 10, 11, 12, 21, 17, 26, 14, 20, 18, 15, 22, 24, 25, 23]) + max_node_label
+    nodes_to_concat2 = np.array([mapping[ele] for ele in [3]]) + max_node_label
     pseudo_edges2 = connect_two_graphs(nodes_to_concat2, G.nodes())
     G.add_edges_from(pseudo_edges2)
 
-    edges3, center3 = create_small_graph(max_node_label)
+    edges3, center3, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
     G.add_edges_from(edges3)
 
-    nodes_to_concat3 = np.array([16, 6, 4, 5, 10, 11, 12, 21, 17, 26, 14, 20, 18, 15, 22, 24, 25, 23]) + max_node_label
+    nodes_to_concat3 = np.array([mapping[ele] for ele in [3]]) + max_node_label
     pseudo_edges3 = connect_two_graphs(nodes_to_concat3, G.nodes())
     G.add_edges_from(pseudo_edges3)
-
-
     print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
+    return G, center1, center2, center3
 
+
+def create_data_for_GCN(G):
     num_nodes = len(G.nodes())
-
     features = np.ones((num_nodes, 10))
     adj = create_adj(G.edges(), num_nodes)
+    return features, adj
 
-    embeddings = learn_embedding(features, adj)
 
-    evaluate(embeddings, center1, center2, center3)
+def create_data_for_Graphsage(G):
+    num_nodes = len(G.nodes())
+    graphsage_G = nx.Graph()
+    graphsage_G.add_edges_from([(str(edge[0]),str(edge[1])) for edge in list(G.edges)])
+    features = np.ones((num_nodes,10), dtype = float) 
+    id2idx = {node:int(node) for node in list(graphsage_G.nodes)}
+    save_graph(features, graphsage_G, id2idx, 'bioDMLC', 'data/bioDMLC')
+    graph_data = load_data(args.prefix)
+    return graph_data
+
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    kara_center = 2
+    path = 'data/bio-DM-LC.edges'
+
+    G , center1, center2, center3 = gen_data(path, kara_center)
+
+    if args.model == "GCN":
+        features, adj = create_data_for_GCN(G)
+        embeddings = learn_embedding(features, adj)
+    elif args.model == "Graphsage":
+        graph_data = create_data_for_Graphsage(G)
+        embeddings = run_graph(graph_data, args)
+    success = evaluate(embeddings, center1, center2, center3)
