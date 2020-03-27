@@ -97,7 +97,8 @@ def evaluate(embeddings, centers, labels, Graph):
             result_depth = results[depth]
             max_len = 0
             max_len_group = None
-            for gr in result_depth:
+            for gr_key in result_depth:
+                gr = result_depth[gr_key]
                 if len(gr['points']) > max_len:
                     max_len = len(gr['points'])
                     max_len_group = gr['points']
