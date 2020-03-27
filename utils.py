@@ -67,6 +67,7 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
 
 
 def evaluate(embeddings, centers, labels, Graph):
+    pritn("-"*100)
     simi = embeddings.dot(embeddings.T)
     simi_center1 = simi[centers[0]]
     arg_sort = simi_center1.argsort()[::-1]
@@ -92,6 +93,16 @@ def evaluate(embeddings, centers, labels, Graph):
         if len(points_in_label) > 300:
             return 1
         results = get_bfs_results(Graph, points_in_label)
+        for depth in results:
+            result_depth = results[depth]
+            max_len = 0
+            max_len_group = None
+            for gr in result_depth:
+                if len(gr['points']) > max_len:
+                    max_len = len(gr['points'])
+                    max_len_group = gr['points']
+            print("Depth: {}, group: {}".format(depth, max_len_group))
+            print("Depth: {}, BFS_acc: {:.4f}".format(depth, jaccard_distance(max_len_group, centers)))
         print(results)
     return 1
 
@@ -122,9 +133,6 @@ def get_bfs_results(Graph, points_in_label):
         
 
 def get_subgraph(Graph, start_node, depth):
-    """
-    TODO: Implement this DONE!
-    """
     nodes = set([start_node])
     for i in range(depth):
         nodes_i = set()
