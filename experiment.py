@@ -191,9 +191,6 @@ if __name__ == "__main__":
         for i, lb in enumerate(labels):
             file.write("{}\t{}\t{}\n".format(i, "{}".format(lb), degrees[i]))
     
-
-
-    exit()
     args = parse_args()
 
     kara_center = 2
