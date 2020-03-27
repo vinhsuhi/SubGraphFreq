@@ -7,7 +7,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 from networkx.readwrite import json_graph
 from models.graphsage.dataset import Dataset 
-
+from collections import Counter
 import os
 import json
 
@@ -66,24 +66,33 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     return pseudo_edges
 
 
-def evaluate(embeddings, center1, center2, center3):
+def evaluate(embeddings, centers, labels):
     simi = embeddings.dot(embeddings.T)
-
-    simi_center1 = simi[center1]
+    simi_center1 = simi[centers[0]]
     arg_sort = simi_center1.argsort()[::-1]
     print("The three centers are: ")
-    print(center1, center2, center3)
-    print("Seven cloest nodes to the 'center1' is: ")
-    print(arg_sort[:7])
+    print(centers)
+    print("{} cloest nodes to the 'center1' is: ".format(len(centers)))
+    print(arg_sort[:len(centers)].tolist())
     print("The similarity values between those nodes and 'center1' is: ")
-    print(simi_center1[arg_sort][:7])
+    print(simi_center1[arg_sort][:len(centers)].tolist())
+    print("ACC: {:.4f}".format(jaccard_distance(arg_sort[:len(centers)].tolist(), centers)))
 
-    if center2 not in arg_sort[:3]:
-        return False
-    if center3 not in arg_sort[:3]:
-        return False
-    return True
+    print("CLUTERING RESULTs")
+    print("frequency...")
+    print(Counter(labels))
+    labels_center = [labels[index] for index in centers]
+    print("labels of center nodes: ")
+    print(Counter(labels_center))
+    return 1
+    
 
+def jaccard_distance(list_1, list_2):
+    set1 = set(list_1)
+    set2 = set(list_2)
+    common = set1.intersection(set2)
+    uni = set1.union(set2)
+    return len(common) / len(uni)
 
 
 def load_data(prefix):

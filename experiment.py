@@ -8,6 +8,10 @@ import torch.nn.functional as F
 from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2
 from models.graphsage.model import run_graph
 import argparse
+from lshash import LSHash
+from sklearn.cluster import DBSCAN
+import os
+from collections import Counter
 
 
 
@@ -18,9 +22,11 @@ def parse_args():
     parser.add_argument('--batch_size', default = 500  , type = int)
     parser.add_argument('--learning_rate', default = 0.001, type = float)
     parser.add_argument('--cuda', action = "store_true")
-    parser.add_argument('--dim_1', default = 64, type = int)
-    parser.add_argument('--dim_2', default = 64, type = int)
+    parser.add_argument('--dim_1', default = 10, type = int)
+    parser.add_argument('--dim_2', default = 10, type = int)
     parser.add_argument('--epochs', default=3,   help='Number of epochs to train.', type=int)
+    parser.add_argument('--clustering_method', default='DBSCAN', help="choose between DBSCAN and LSH")
+    parser.add_argument('--num_adds', default=3, type=int)
 
     return parser.parse_args()
     
@@ -62,7 +68,7 @@ def learn_embedding(features, adj):
     return embeddings
 
 
-def gen_data(path, kara_center):
+def gen_data(path, kara_center, num_adds):
     G = read_graph(path)
     G_mouse = read_graph('data/mouse.edges')
     max_node_label = max(G.nodes()) + 1
@@ -74,63 +80,30 @@ def gen_data(path, kara_center):
     print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
 
     # 1
-    edges1, center1, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
-    G.add_edges_from(edges1)
-    max_node_label = max(G.nodes()) + 1
+    center1s = []
+    for i in range(num_adds):
+        edges, center, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
+        center1s.append(center)
+        G.add_edges_from(edges)
+        max_node_label = max(G.nodes()) + 1
 
-    nodes_to_concat1 = np.array([mapping[ele] for ele in [3]]) + max_node_label
-    pseudo_edges1 = connect_two_graphs(nodes_to_concat1, G.nodes())
-    G.add_edges_from(pseudo_edges1)
+        nodes_to_concat = np.array([mapping[ele] for ele in [26]]) + max_node_label
+        pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
+        G.add_edges_from(pseudo_edges)
 
-    # 2
-    edges2, center2, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
-    G.add_edges_from(edges2)
-    max_node_label = max(G.nodes()) + 1
+    center2s = []
+    for i in range(num_adds):
+        edges, center, mapping = create_small_graph2(G_mouse, max_node_label, 9)
+        center2s.append(center)
+        G.add_edges_from(edges)
+        max_node_label = max(G.nodes()) + 1
 
-    nodes_to_concat2 = np.array([mapping[ele] for ele in [3]]) + max_node_label
-    pseudo_edges2 = connect_two_graphs(nodes_to_concat2, G.nodes())
-    G.add_edges_from(pseudo_edges2)
-
-    # 3
-    edges3, center3, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
-    G.add_edges_from(edges3)
-    max_node_label = max(G.nodes()) + 1
-
-    nodes_to_concat3 = np.array([mapping[ele] for ele in [3]]) + max_node_label
-    pseudo_edges3 = connect_two_graphs(nodes_to_concat3, G.nodes())
-    G.add_edges_from(pseudo_edges3)
-
-    # 11
-    edges4, center11, mapping = create_small_graph2(G_mouse, max_node_label, 9)
-    G.add_edges_from(edges4)
-    max_node_label = max(G.nodes()) + 1
-
-    nodes_to_concat4 = np.array([mapping[ele] for ele in [1]]) + max_node_label
-    pseudo_edges4 = connect_two_graphs(nodes_to_concat4, G.nodes())
-    G.add_edges_from(pseudo_edges4)
-
-    # 22
-    edges5, center22, mapping = create_small_graph2(G_mouse, max_node_label, 9)
-    G.add_edges_from(edges5)
-    max_node_label = max(G.nodes()) + 1
-
-    nodes_to_concat5 = np.array([mapping[ele] for ele in [1]]) + max_node_label
-    pseudo_edges5 = connect_two_graphs(nodes_to_concat5, G.nodes())
-    G.add_edges_from(pseudo_edges5)
-
-
-    # 11
-    edges6, center33, mapping = create_small_graph2(G_mouse, max_node_label, 9)
-    G.add_edges_from(edges6)
-    max_node_label = max(G.nodes()) + 1
-
-    nodes_to_concat6 = np.array([mapping[ele] for ele in [1]]) + max_node_label
-    pseudo_edges6 = connect_two_graphs(nodes_to_concat6, G.nodes())
-    G.add_edges_from(pseudo_edges6)
-
+        nodes_to_concat = np.array([mapping[ele] for ele in [1]]) + max_node_label
+        pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
+        G.add_edges_from(pseudo_edges)
 
     print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
-    return G, center1, center2, center3, center11, center22, center33
+    return G, center1s, center2s
 
 
 def create_data_for_GCN(G):
@@ -151,24 +124,97 @@ def create_data_for_Graphsage(G):
     return graph_data
 
 
+def save_visualize_data(embeddings, labels, method, G):
+    if not os.path.exists('visualize_data'):
+        os.mkdir('visualize_data')
+
+    np.savetxt('visualize_data/{}_embeddings.tsv'.format(method), embeddings, delimiter='\t')
+
+    with open('visualize_data/{}_labels.tsv'.format(method), 'w', encoding='utf-8') as file:
+        file.write("{}\t{}\t{}\n".format('node_id', 'cluster_id', 'degree'))
+        for i, lb in enumerate(labels):
+            file.write("{}\t{}\t{}\n".format(i, "bucket_{}".format(lb), G.degree(i)))
+    
+    print("DONE saving to file!")
+
+
+def clustering(embeddings, method):
+    if method == "DBSCAN":
+        db = DBSCAN(eps=0.01, min_samples=14, metric='cosine').fit(embeddings)
+        labels = db.labels_
+        labels = [ele + 1 for ele in labels]
+        cter = Counter(labels)
+        
+    elif method == "LSH":
+        model = LSHash(10, 32)
+        for i in range(len(embeddings)):
+            model.index(embeddings[i])
+            hash_0_dict = model.hash_tables[0].storage
+            key_to_index = {}
+            for i, key in enumerate(hash_0_dict):
+                key_to_index[key] = i
+            labels = []
+        for i in range(len(embeddings)):
+            key = model.query(embeddings[i])[1][0]
+            labels.append(key_to_index[key])
+
+    return labels
+
+    
+
+
+
 if __name__ == "__main__":
+    embeddings = []
+            
+    embeddings = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
+    labels = []
+    index = []
+    degrees = []
+    with open("visualize_data/DBSCAN_labels.tsv", 'r', encoding='utf-8') as file:
+        for i, line in enumerate(file):
+            if i == 0:
+                continue
+            data = line.split()
+            if data[1] == "bucket_1" or data[1] == "bucket_2" or data[1] == "bucket_0":
+                continue
+            index.append(i -1)
+            labels.append(data[1])
+            degrees.append(data[2])
+    file.close()
+    
+    embeddings = embeddings[index]
+
+    np.savetxt("embeddings.tsv", embeddings, delimiter='\t')
+    with open("labels.tsv", 'w', encoding='utf-8') as file:
+        file.write("{}\t{}\t{}\n".format('node_id', 'cluster_id', 'degree'))
+        for i, lb in enumerate(labels):
+            file.write("{}\t{}\t{}\n".format(i, "{}".format(lb), degrees[i]))
+    
+
+
+    exit()
     args = parse_args()
 
     kara_center = 2
     path = 'data/bio-DM-LC.edges'
 
-    G , center1, center2, center3, center11, center22, center33 = gen_data(path, kara_center)
+    G, center1s, center2s = gen_data(path, kara_center, args.num_adds)
 
     if args.model == "GCN":
         features, adj = create_data_for_GCN(G)
         embeddings = learn_embedding(features, adj)
     elif args.model == "Graphsage":
         graph_data = create_data_for_Graphsage(G)
-        embeddings = run_graph(graph_data, args)
-    success = evaluate(embeddings, center1, center2, center3)
+        embeddings, embeddings2 = run_graph(graph_data, args)
 
-    success = evaluate(embeddings, center11, center22, center33)
+    labels = clustering(embeddings, args.clustering_method)
+    save_visualize_data(embeddings2, labels, args.clustering_method, G)
 
-    print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1] * embeddings[center11])))
+    success = evaluate(embeddings, center1s, labels)
+
+    success = evaluate(embeddings, center2s, labels)
+
+    print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))
 
 

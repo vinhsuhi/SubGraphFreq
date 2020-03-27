@@ -132,8 +132,9 @@ def run_graph(graph_data,args):
             optimizer.step()
             print("Loss: {:.4f}".format(loss.data))
     embeddings = F.normalize(graphsage.aggregator(list(range(feat_data.shape[0]))), dim = 1)
-
+    embeddings2 = graphsage.aggregator(list(range(feat_data.shape[0])))
     embeddings = embeddings.detach().cpu().numpy()
-    return embeddings
+    embeddings2 = embeddings2.detach().cpu().numpy()
+    return embeddings, embeddings2
 
         
