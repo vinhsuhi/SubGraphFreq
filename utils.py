@@ -89,6 +89,8 @@ def evaluate(embeddings, centers, labels, Graph):
     else:
         label = labels[centers[0]]
         points_in_label = [index for index in range(len(labels)) if labels[index] == label]
+        if len(points_in_label) > 300:
+            return 1
         results = get_bfs_results(Graph, points_in_label)
         print(results)
     return 1

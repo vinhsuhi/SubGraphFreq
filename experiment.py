@@ -27,6 +27,7 @@ def parse_args():
     parser.add_argument('--epochs', default=3,   help='Number of epochs to train.', type=int)
     parser.add_argument('--clustering_method', default='DBSCAN', help="choose between DBSCAN and LSH")
     parser.add_argument('--num_adds', default=3, type=int)
+    parser.add_argument('--load_embs', action='store_true')
 
     return parser.parse_args()
     
@@ -167,29 +168,29 @@ def clustering(embeddings, method):
 if __name__ == "__main__":
     embeddings = []
             
-    embeddings = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
-    labels = []
-    index = []
-    degrees = []
-    with open("visualize_data/DBSCAN_labels.tsv", 'r', encoding='utf-8') as file:
-        for i, line in enumerate(file):
-            if i == 0:
-                continue
-            data = line.split()
-            if data[1] == "bucket_1" or data[1] == "bucket_2" or data[1] == "bucket_0":
-                continue
-            index.append(i -1)
-            labels.append(data[1])
-            degrees.append(data[2])
-    file.close()
+    # embeddings = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
+    # labels = []
+    # index = []
+    # degrees = []
+    # with open("visualize_data/DBSCAN_labels.tsv", 'r', encoding='utf-8') as file:
+    #     for i, line in enumerate(file):
+    #         if i == 0:
+    #             continue
+    #         data = line.split()
+    #         if data[1] == "bucket_1" or data[1] == "bucket_2" or data[1] == "bucket_0":
+    #             continue
+    #         index.append(i -1)
+    #         labels.append(data[1])
+    #         degrees.append(data[2])
+    # file.close()
     
-    embeddings = embeddings[index]
+    # embeddings = embeddings[index]
 
-    np.savetxt("embeddings.tsv", embeddings, delimiter='\t')
-    with open("labels.tsv", 'w', encoding='utf-8') as file:
-        file.write("{}\t{}\t{}\n".format('node_id', 'cluster_id', 'degree'))
-        for i, lb in enumerate(labels):
-            file.write("{}\t{}\t{}\n".format(i, "{}".format(lb), degrees[i]))
+    # np.savetxt("embeddings.tsv", embeddings, delimiter='\t')
+    # with open("labels.tsv", 'w', encoding='utf-8') as file:
+    #     file.write("{}\t{}\t{}\n".format('node_id', 'cluster_id', 'degree'))
+    #     for i, lb in enumerate(labels):
+    #         file.write("{}\t{}\t{}\n".format(i, "{}".format(lb), degrees[i]))
     
     args = parse_args()
 
@@ -198,12 +199,17 @@ if __name__ == "__main__":
 
     G, center1s, center2s = gen_data(path, kara_center, args.num_adds)
 
-    if args.model == "GCN":
-        features, adj = create_data_for_GCN(G)
-        embeddings = learn_embedding(features, adj)
-    elif args.model == "Graphsage":
-        graph_data = create_data_for_Graphsage(G)
-        embeddings, embeddings2 = run_graph(graph_data, args)
+    if args.load_embs:
+        embeddings2 = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
+        embeddings = F.normalize(torch.FloatTensor(embeddings2)).detach().cpu().numpy()
+    else:
+        if args.model == "GCN":
+            features, adj = create_data_for_GCN(G)
+            embeddings = learn_embedding(features, adj)
+        elif args.model == "Graphsage":
+            graph_data = create_data_for_Graphsage(G)
+            embeddings, embeddings2 = run_graph(graph_data, args)
+    
 
     labels = clustering(embeddings, args.clustering_method)
     save_visualize_data(embeddings2, labels, args.clustering_method, G)
