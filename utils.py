@@ -67,7 +67,7 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
 
 
 def evaluate(embeddings, centers, labels, Graph):
-    pritn("-"*100)
+    print("-"*100)
     simi = embeddings.dot(embeddings.T)
     simi_center1 = simi[centers[0]]
     arg_sort = simi_center1.argsort()[::-1]
