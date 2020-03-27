@@ -70,16 +70,16 @@ def evaluate(embeddings, centers, labels, Graph):
     simi = embeddings.dot(embeddings.T)
     simi_center1 = simi[centers[0]]
     arg_sort = simi_center1.argsort()[::-1]
-    print("The three centers are: ")
+    print("The centers are: ")
     print(centers)
-    print("{} cloest nodes to the 'center1' is: ".format(len(centers)))
-    print(arg_sort[:len(centers)].tolist())
-    print("The similarity values between those nodes and 'center1' is: ")
-    print(simi_center1[arg_sort][:len(centers)].tolist())
+    # print("{} cloest nodes to the 'center1' is: ".format(len(centers)))
+    # print(arg_sort[:len(centers)].tolist())
+    # print("The similarity values between those nodes and 'center1' is: ")
+    # print(simi_center1[arg_sort][:len(centers)].tolist())
     print("ACC: {:.4f}".format(jaccard_distance(arg_sort[:len(centers)].tolist(), centers)))
 
     print("CLUTERING RESULTs")
-    print("frequency...")
+    # print("frequency...")
     print(Counter(labels))
     labels_center = [labels[index] for index in centers]
     print("labels of center nodes: ")
@@ -116,7 +116,7 @@ def get_bfs_results(Graph, points_in_label):
                 # Groups.append([i])
                 Groups[len(Groups) + 1] = {'points': [points_in_label[i]], 'num_nodes': len(subgraphs[points_in_label[i]].nodes())}
         Group_depth[depth] = Groups
-    return Groups
+    return Group_depth
         
 
 def get_subgraph(Graph, start_node, depth):
