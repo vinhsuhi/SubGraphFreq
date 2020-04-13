@@ -66,7 +66,7 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     return pseudo_edges
 
 
-def evaluate(embeddings, centers, labels, Graph):
+def evaluate(embeddings, centers, labels, Graph, file_name):
     print("-"*100)
     simi = embeddings.dot(embeddings.T)
     simi_center1 = simi[centers[0]]
@@ -93,6 +93,7 @@ def evaluate(embeddings, centers, labels, Graph):
         if len(points_in_label) > 300:
             return 1
         results = get_bfs_results(Graph, points_in_label)
+        results = save_graph(Graph, points_in_label, labels, file_name)
         for depth in results:
             result_depth = results[depth]
             max_len = 0
