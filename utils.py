@@ -108,6 +108,43 @@ def evaluate(embeddings, centers, labels, Graph):
     return 1
 
 
+
+def save_subgraph(Graph, points_in_label, true_labels, file_name):
+    subgraphs = {}
+    for start_node in points_in_label:
+        subgraph_depth = get_subgraph(Graph, start_node, depth)
+        subgraphs[start_node] = subgraph_depth
+
+    count = 0
+    with open(file_name, 'w', encoding='utf-8') as file:
+        for key, value in subgraphs.items():
+            file.write('t # {}'.format(count))
+            count += 1
+            id2idx = {node: i for i, node in enumerate(list(value.nodes()))}
+            import pdb
+            pdb.set_trace()
+            
+
+
+
+        
+    # Groups = {1: {'points': [points_in_label[0]], 'num_nodes': len(subgraphs[points_in_label[0]].nodes())}}
+    # for i in tqdm(range(1, len(points_in_label))):
+    #     create_new = True
+    #     # for k, gr in enumerate(Groups):
+    #     for key, value in Groups.items():
+    #         gr = Groups[key]
+    #         gr_repre_subgraph = subgraphs[gr['points'][0]]
+    #         if nx.is_isomorphic(gr_repre_subgraph, subgraphs[points_in_label[i]]):
+    #             Groups[key]['points'].append(points_in_label[i])
+    #             create_new = False
+    #             break
+    #     if create_new:
+    #         # Groups.append([i])
+    #         Groups[len(Groups) + 1] = {'points': [points_in_label[i]], 'num_nodes': len(subgraphs[points_in_label[i]].nodes())}
+    # Group_depth[depth] = Groups
+
+
 def get_bfs_results(Graph, points_in_label):
     Group_depth = {}
     for depth in range(1, 3):
@@ -131,7 +168,58 @@ def get_bfs_results(Graph, points_in_label):
                 Groups[len(Groups) + 1] = {'points': [points_in_label[i]], 'num_nodes': len(subgraphs[points_in_label[i]].nodes())}
         Group_depth[depth] = Groups
     return Group_depth
-        
+
+def get_bfs_results_new(Graph, points_in_label, minS):
+    """
+    ban dau co 3 node root
+    3 stacks
+    lam mot vong lap, tai moi vong lap thi pop ra mot nut, cung thi luu lai, chua ket luan
+    degree khac nhau: tach ra thanh cac cum nho hon, chi giu lai nhung cum lon hoi minSub
+    3 thang cung degree thi moi xet den neighbor 
+
+    * Trong mot stack co vai dinh co degree giong nhau:
+    * Cac subgraph co duoc overlap khong:
+    * Cac 
+
+    # 1 Cac node in label phai cung degree
+    # 2 
+    """
+    neighborss = []
+    for node in points_in_label:
+        sorted_neighbors = sorted_neighbors_by_degree(node, Graph)
+        neighborss.append(sorted_neighbors)
+    
+    # for neighbors in neighborss:
+    firsts = [ele[0] for ele in neighborss]
+
+    cluster_by_degree = get_cluster_by_degree(firsts, Graph)
+
+    pass
+
+def get_cluster_by_degree(list_node, Graph):
+    """
+    TODO: DONE!
+    """
+    degree_cluster = {Graph.degree(list_node[0]): [list_node[0]]}
+    for i in range(len(list_node)):
+        if i == 0:
+            continue
+        degree_node = Graph.degree(list_node[i])
+        if degree_node not in degree_cluster:
+            degree_cluster[degree_node] = [list_node[i]]
+        else:
+            degree_cluster[degree_node].append(list_node[i])
+    cluster_by_degree = list(degree_cluster.values())
+    return cluster_by_degree
+
+
+def sorted_neighbors_by_degree(node, Graph):
+    neighbors = Graph.neighbors(node)
+    neighbors = np.array(neighbors)
+    degree = np.array([Graph.degree(n) for n in neighbors])
+    return neighbors[np.argsort(degree)]
+
+ 
 
 def get_subgraph(Graph, start_node, depth):
     nodes = set([start_node])
