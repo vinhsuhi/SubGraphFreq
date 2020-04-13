@@ -54,7 +54,7 @@ def learn_embedding(features, adj):
         adj = adj.cuda()
         model = model.cuda()
 
-    num_epochs = 3
+    num_epochs = 20
 
     for epoch in tqdm(range(num_epochs), desc="Training..."):
         optimizer.zero_grad()
