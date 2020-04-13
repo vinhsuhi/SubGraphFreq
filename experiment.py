@@ -214,9 +214,9 @@ if __name__ == "__main__":
     labels = clustering(embeddings, args.clustering_method)
     save_visualize_data(embeddings2, labels, args.clustering_method, G)
 
-    success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/file1.out')
+    success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/file1.outx')
 
-    success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/file2.out')
+    success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/file2.outx')
 
     print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))
 
