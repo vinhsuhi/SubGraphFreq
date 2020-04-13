@@ -93,7 +93,7 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
         if len(points_in_label) > 300:
             return 1
         results = get_bfs_results(Graph, points_in_label)
-        results = save_graph(Graph, points_in_label, labels, file_name)
+        results = save_subgraph(Graph, points_in_label, labels, file_name)
         for depth in results:
             result_depth = results[depth]
             max_len = 0
