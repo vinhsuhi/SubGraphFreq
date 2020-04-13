@@ -93,7 +93,8 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
         if len(points_in_label) > 300:
             return 1
         results = get_bfs_results(Graph, points_in_label)
-        results = save_subgraph(Graph, points_in_label, labels, file_name)
+        results = save_subgraph(Graph, points_in_label, centers, file_name)
+        """
         for depth in results:
             result_depth = results[depth]
             max_len = 0
@@ -106,25 +107,38 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
             print("Depth: {}, group: {}".format(depth, max_len_group))
             print("Depth: {}, BFS_acc: {:.4f}".format(depth, jaccard_distance(max_len_group, centers)))
         print(results)
+        """
     return 1
 
 
 
 def save_subgraph(Graph, points_in_label, true_labels, file_name):
+    print(true_labels)
     subgraphs = {}
     for start_node in points_in_label:
-        subgraph_depth = get_subgraph(Graph, start_node, depth)
+        subgraph_depth = get_subgraph(Graph, start_node,2)
         subgraphs[start_node] = subgraph_depth
 
     count = 0
     with open(file_name, 'w', encoding='utf-8') as file:
         for key, value in subgraphs.items():
-            file.write('t # {}'.format(count))
+            file.write('t # {}\n'.format(count))
             count += 1
             id2idx = {node: i for i, node in enumerate(list(value.nodes()))}
-            import pdb
-            pdb.set_trace()
-            
+            for node in id2idx:
+                file.write('v {} 1\n'.format(id2idx[node]))
+            for edge in value.edges():
+                file.write('e {} {} 1\n'.format(id2idx[edge[0]], id2idx[edge[1]]))
+            with open(file_name + '_id2idx{}'.format(count - 1), 'w', encoding='utf-8') as f2:
+                for node in id2idx:
+                    f2.write('{} {}\n'.format(node, id2idx[node]))
+            f2.close()
+    file.close()
+
+    with open(file_name + "true_label", 'w', encoding='utf-8') as file:
+        for label in true_labels:
+            file.write('{}\n'.format(label))
+    file.close()
 
 
 
