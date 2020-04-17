@@ -125,9 +125,9 @@ def create_data_for_Graphsage(G):
     return graph_data
 
 
-def load_data(data_path):
-    print("Have not implement yet")
-    return 
+# def load_data(data_path):
+    # print("Have not implement yet")
+    # return 
 
 
 def save_visualize_data(embeddings, labels, method, G):
