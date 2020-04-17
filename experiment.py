@@ -125,6 +125,11 @@ def create_data_for_Graphsage(G):
     return graph_data
 
 
+def load_data(data_path):
+    print("Have not implement yet")
+    return 
+
+
 def save_visualize_data(embeddings, labels, method, G):
     if not os.path.exists('visualize_data'):
         os.mkdir('visualize_data')
@@ -168,30 +173,6 @@ def clustering(embeddings, method):
 if __name__ == "__main__":
     embeddings = []
             
-    # embeddings = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
-    # labels = []
-    # index = []
-    # degrees = []
-    # with open("visualize_data/DBSCAN_labels.tsv", 'r', encoding='utf-8') as file:
-    #     for i, line in enumerate(file):
-    #         if i == 0:
-    #             continue
-    #         data = line.split()
-    #         if data[1] == "bucket_1" or data[1] == "bucket_2" or data[1] == "bucket_0":
-    #             continue
-    #         index.append(i -1)
-    #         labels.append(data[1])
-    #         degrees.append(data[2])
-    # file.close()
-    
-    # embeddings = embeddings[index]
-
-    # np.savetxt("embeddings.tsv", embeddings, delimiter='\t')
-    # with open("labels.tsv", 'w', encoding='utf-8') as file:
-    #     file.write("{}\t{}\t{}\n".format('node_id', 'cluster_id', 'degree'))
-    #     for i, lb in enumerate(labels):
-    #         file.write("{}\t{}\t{}\n".format(i, "{}".format(lb), degrees[i]))
-    
     args = parse_args()
 
     kara_center = 2

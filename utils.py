@@ -127,9 +127,9 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name):
             id2idx = {node: i for i, node in enumerate(list(value.nodes()))}
             for node in id2idx:
                 if node == key:
-                    file.write('v {} 2\n'.format(id2idx[node]))
-                else:
                     file.write('v {} 1\n'.format(id2idx[node]))
+                else:
+                    file.write('v {} 2\n'.format(id2idx[node]))
                 
 
             for edge in value.edges():
