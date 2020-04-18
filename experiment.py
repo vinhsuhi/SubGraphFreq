@@ -45,14 +45,14 @@ def loss_function(output, adj):
 
 
 def learn_embedding(features, adj):
-    cuda = False
+    cuda = True
     num_GCN_blocks = 2
     input_dim = features.shape[1]
     output_dim = 20
     model = FA_GCN('tanh', num_GCN_blocks, input_dim, output_dim)
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
     features = torch.FloatTensor(features)
-    adj = torch.FloatTensor(adj)
+    # adj = torch.FloatTensor(adj)
     if cuda:
         features = features.cuda()
         adj = adj.cuda()
@@ -115,7 +115,11 @@ def gen_data(path, kara_center, num_adds):
 def create_data_for_GCN(G):
     num_nodes = len(G.nodes())
     features = np.ones((num_nodes, 10))
-    adj = create_adj(G.edges(), num_nodes)
+    indexs = torch.LongTensor(np.array(list(G.edges())).T)
+    values = torch.FloatTensor(np.ones(len(index.shape[1])))
+    adj = torch.sparse.FloatTensor(indexs, values)
+    # adj = nx.to_scipy_sparse_matrix(G)
+    # adj = create_adj(G.edges(), num_nodes)d77
     return features, adj
 
 
