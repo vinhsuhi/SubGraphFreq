@@ -123,7 +123,7 @@ def create_data_for_Graphsage(G, args):
     graphsage_G.add_edges_from([(str(edge[0]),str(edge[1])) for edge in list(G.edges)])
     features = np.ones((num_nodes,10), dtype = float) 
     id2idx = {node:int(node) for node in list(graphsage_G.nodes)}
-    save_graph(features, graphsage_G, id2idx, args.dataset_name, args.dir)
+    save_graph(features, graphsage_G, id2idx, args.data_name, args.dir)
     graph_data = load_data(args.prefix)
     return graph_data
 
