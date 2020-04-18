@@ -63,7 +63,7 @@ def link_pred_loss(inputs1, inputs2, embeddings, degrees):
     outputs2 = embeddings[inputs2.tolist()]
     neg_outputs = embeddings[neg.tolist()]
 
-    link_pred_layer = BipartiteEdgePredLayer(is_normalized_input=self.normalize_embedding)
+    link_pred_layer = BipartiteEdgePredLayer(is_normalized_input=True)
     batch_isze = len(inputs1)
     loss = link_pred_layer.loss(outputs1, outputs2, neg_outputs) / batch_size
     return loss
