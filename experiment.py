@@ -157,7 +157,7 @@ def gen_data(path, kara_center, num_adds):
 
 def create_data_for_GCN(G):
     
-    num_nodes = len(G.nodes
+    num_nodes = len(G.nodes)
     degree = [G.degree(node) for node in G.nodes]
     edges = np.array(list(G.edges))
     features = np.ones((num_nodes, 10))
