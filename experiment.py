@@ -30,6 +30,7 @@ def parse_args():
     parser.add_argument('--load_embs', action='store_true')
     parser.add_argument('--data_name', type=str)
     parser.add_argument('--large_graph_path', type=str, default='data/bio-DM-LC.edges')
+    parser.add_argument('--dir', type=str, default='data/bioDM')
 
     return parser.parse_args()
     
@@ -116,13 +117,13 @@ def create_data_for_GCN(G):
     return features, adj
 
 
-def create_data_for_Graphsage(G):
+def create_data_for_Graphsage(G, args):
     num_nodes = len(G.nodes())
     graphsage_G = nx.Graph()
     graphsage_G.add_edges_from([(str(edge[0]),str(edge[1])) for edge in list(G.edges)])
     features = np.ones((num_nodes,10), dtype = float) 
     id2idx = {node:int(node) for node in list(graphsage_G.nodes)}
-    save_graph(features, graphsage_G, id2idx, 'bioDMLC', 'data/bioDMLC')
+    save_graph(features, graphsage_G, id2idx, args.dataset_name, args.dir)
     graph_data = load_data(args.prefix)
     return graph_data
 
@@ -187,7 +188,7 @@ if __name__ == "__main__":
             features, adj = create_data_for_GCN(G)
             embeddings = learn_embedding(features, adj)
         elif args.model == "Graphsage":
-            graph_data = create_data_for_Graphsage(G)
+            graph_data = create_data_for_Graphsage(G, args)
             embeddings, embeddings2 = run_graph(graph_data, args)
     
 
