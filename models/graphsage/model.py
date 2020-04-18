@@ -9,7 +9,7 @@ import time
 import random
 from sklearn.metrics import f1_score
 from collections import defaultdict
-
+from tqdm import tqdm
 
 from models.graphsage.encoders import Encoder
 from models.graphsage.aggregators import MeanAggregator
