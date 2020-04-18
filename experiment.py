@@ -28,6 +28,8 @@ def parse_args():
     parser.add_argument('--clustering_method', default='DBSCAN', help="choose between DBSCAN and LSH")
     parser.add_argument('--num_adds', default=3, type=int)
     parser.add_argument('--load_embs', action='store_true')
+    parser.add_argument('--data_name', type=str)
+    parser.add_argument('--large_graph_path', type=str, default='data/bio-DM-LC.edges')
 
     return parser.parse_args()
     
@@ -166,9 +168,6 @@ def clustering(embeddings, method):
 
     return labels
 
-    
-
-
 
 if __name__ == "__main__":
     embeddings = []
@@ -176,9 +175,9 @@ if __name__ == "__main__":
     args = parse_args()
 
     kara_center = 2
-    path = 'data/bio-DM-LC.edges'
+    # path = 'data/bio-DM-LC.edges'
 
-    G, center1s, center2s = gen_data(path, kara_center, args.num_adds)
+    G, center1s, center2s = gen_data(args.large_graph_path, kara_center, args.num_adds)
 
     if args.load_embs:
         embeddings2 = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
@@ -195,9 +194,9 @@ if __name__ == "__main__":
     labels = clustering(embeddings, args.clustering_method)
     save_visualize_data(embeddings2, labels, args.clustering_method, G)
 
-    success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/file1.outx')
+    success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
 
-    success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/file2.outx')
+    success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
 
     print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))
 
