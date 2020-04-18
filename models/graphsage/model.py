@@ -124,7 +124,7 @@ def run_graph(graph_data,args):
     for epoch in range(args.epochs):
         print("Epoch {0}".format(epoch))
         np.random.shuffle(all_edges)
-        for iter in range(n_iters):  ####### for iter in range(n_iters)
+        for iter in tqdm(range(n_iters)):  ####### for iter in range(n_iters)
             batch_edges = torch.LongTensor(all_edges[iter*batch_size:(iter+1)*batch_size])
             optimizer.zero_grad()
             loss = graphsage.loss(batch_edges[:,0], batch_edges[:,1])
