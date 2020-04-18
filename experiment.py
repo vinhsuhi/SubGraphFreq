@@ -116,8 +116,8 @@ def create_data_for_GCN(G):
     num_nodes = len(G.nodes())
     features = np.ones((num_nodes, 10))
     indexs = torch.LongTensor(np.array(list(G.edges())).T)
-    values = torch.FloatTensor(np.ones(len(index.shape[1])))
-    adj = torch.sparse.FloatTensor(indexs, values)
+    values = torch.FloatTensor(np.ones(indexs.shape[1]))
+    adj = torch.sparse.FloatTensor(indexs, values, torch.Size([num_nodes, num_nodes]))
     # adj = nx.to_scipy_sparse_matrix(G)
     # adj = create_adj(G.edges(), num_nodes)d77
     return features, adj
