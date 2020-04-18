@@ -115,13 +115,18 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
 def save_subgraph(Graph, points_in_label, true_labels, file_name):
     print(true_labels)
     subgraphs = {}
+
     for start_node in points_in_label:
         subgraph_depth = get_subgraph(Graph, start_node,2)
         subgraphs[start_node] = subgraph_depth
 
     count = 0
+    groundtruth = []
     with open(file_name, 'w', encoding='utf-8') as file:
         for key, value in subgraphs.items():
+            if key in true_labels:
+                groundtruth.append(count)
+            count += 1
             file.write('t # {}\n'.format(count))
             count += 1
             id2idx = {node: i for i, node in enumerate(list(value.nodes()))}
@@ -134,15 +139,18 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name):
 
             for edge in value.edges():
                 file.write('e {} {} 1\n'.format(id2idx[edge[0]], id2idx[edge[1]]))
-            with open(file_name + '_id2idx{}'.format(count - 1), 'w', encoding='utf-8') as f2:
-                for node in id2idx:
-                    f2.write('{} {}\n'.format(node, id2idx[node]))
+            # with open(file_name + '_id2idx{}'.format(count - 1), 'w', encoding='utf-8') as f2:
+            #     for node in id2idx:
+            #         f2.write('{} {}\n'.format(node, id2idx[node]))
             f2.close()
     file.close()
 
-    with open(file_name + "true_label", 'w', encoding='utf-8') as file:
-        for label in true_labels:
-            file.write('{}\n'.format(label))
+    with open(file_name + "labels_graph", 'w', encoding='utf-8') as file:
+        for gt in groundtruth:
+            file.write('{}\t'.format(gt))
+    # with open(file_name + "true_label", 'w', encoding='utf-8') as file:
+    #     for label in true_labels:
+    #         file.write('{}\n'.format(label))
     file.close()
 
 
