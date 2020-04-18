@@ -13,6 +13,7 @@ from sklearn.cluster import DBSCAN
 import os
 from collections import Counter
 import time
+from models.graphsage.prediction import BipartiteEdgePredLayer
 
 
 
@@ -36,6 +37,12 @@ def parse_args():
     return parser.parse_args()
     
 
+def fixed_unigram_candidate_sampler(num_sampled, unique, range_max, distortion, unigrams):
+    weights = unigrams**distortion
+    prob = weights/weights.sum()
+    sampled = np.random.choice(range_max, num_sampled, p=prob, replace=~unique)
+    return sampled
+
 
 def loss_function(output, adj):
     output = F.normalize(output)
@@ -44,7 +51,25 @@ def loss_function(output, adj):
     return loss
 
 
-def learn_embedding(features, adj):
+def link_pred_loss(inputs1, inputs2, embeddings, degrees):        
+    neg = fixed_unigram_candidate_sampler(
+        num_sampled=10,
+        unique=False,
+        range_max=len(degrees),
+        distortion=0.75,
+        unigrams=degrees
+    )
+    outputs1 = embeddings[inputs1.tolist()]
+    outputs2 = embeddings[inputs2.tolist()]
+    neg_outputs = embeddings[neg.tolist()]
+
+    link_pred_layer = BipartiteEdgePredLayer(is_normalized_input=self.normalize_embedding)
+    batch_isze = len(inputs1)
+    loss = link_pred_layer.loss(outputs1, outputs2, neg_outputs) / batch_size
+    return loss
+
+
+def learn_embedding(features, adj, degree, edges):
     cuda = True
     num_GCN_blocks = 2
     input_dim = features.shape[1]
@@ -60,13 +85,31 @@ def learn_embedding(features, adj):
 
     num_epochs = 20
 
-    for epoch in tqdm(range(num_epochs), desc="Training..."):
-        optimizer.zero_grad()
-        outputs = model.forward(adj, features)
-        loss = loss_function(outputs[-1], adj)
-        print("loss: {:.4f}".format(loss.data))
-        loss.backward()
-        optimizer.step()
+    # for epoch in tqdm(range(num_epochs), desc="Training..."):
+    #     optimizer.zero_grad()
+    #     outputs = model.forward(adj, features)
+    #     loss = loss_function(outputs[-1], adj)
+    #     print("loss: {:.4f}".format(loss.data))
+    #     loss.backward()
+    #     optimizer.step()
+    batch_size = 512
+
+    optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, graphsage.parameters()), lr=args.learning_rate)
+
+    n_iters = len(edges)//batch_size
+     
+    for epoch in range(num_epochs):
+        print("Epoch {0}".format(epoch))
+        np.random.shuffle(edges)
+        for iter in tqdm(range(n_iters)):  ####### for iter in range(n_iters)
+            optimizer.zero_grad()
+            batch_edges = torch.LongTensor(edges[iter*batch_size:(iter+1)*batch_size])
+            outputs = model.forward(adj, features)
+            loss = link_pred_loss(batch_edges[:, 0], batch_edges[: ,1], outputs[-1], degree)
+            loss.backward()
+            optimizer.step()
+            print("Loss: {:.4f}".format(loss.data))
+
     
     embeddings = torch.cat(outputs, dim=1)
     embeddings = embeddings.detach().cpu().numpy()
@@ -113,14 +156,20 @@ def gen_data(path, kara_center, num_adds):
 
 
 def create_data_for_GCN(G):
-    num_nodes = len(G.nodes())
+    
+    num_nodes = len(G.nodes
+    degree = [G.degree(node) for node in G.nodes]
+    edges = np.array(list(G.edges))
     features = np.ones((num_nodes, 10))
-    indexs = torch.LongTensor(np.array(list(G.edges())).T)
+    indexs1 = torch.LongTensor(np.array(list(G.edges).T)
+    indexs2 = torch.LongTensor(np.array([(ele[1], ele[0]) for ele in list(G.edges)]).T)
+    indexs3 = torch.LongTensor(np.array([(node, node) for node in range(num_nodes)]).T)
+    indexs = torch.cat((indexs1, indexs2, indexs3), dim=1)
     values = torch.FloatTensor(np.ones(indexs.shape[1]))
     adj = torch.sparse.FloatTensor(indexs, values, torch.Size([num_nodes, num_nodes]))
     # adj = nx.to_scipy_sparse_matrix(G)
     # adj = create_adj(G.edges(), num_nodes)d77
-    return features, adj
+    return features, adj, degree, edges
 
 
 def create_data_for_Graphsage(G, args):
@@ -191,8 +240,8 @@ if __name__ == "__main__":
         embeddings = F.normalize(torch.FloatTensor(embeddings2)).detach().cpu().numpy()
     else:
         if args.model == "GCN":
-            features, adj = create_data_for_GCN(G)
-            embeddings = learn_embedding(features, adj)
+            features, adj, degree, edges = create_data_for_GCN(G)
+            embeddings = learn_embedding(features, adj, degree, edges)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, args)
             st_emb_time = time.time()
