@@ -72,6 +72,9 @@ class Graph(object):
             is_undirected: whether this graph is directed or not.
             eid_auto_increment: whether to increment edge ids automatically.
         """
+        """
+        set_of_elb is a dictionary that {edge_id}
+        """
         self.gid = gid
         self.is_undirected = is_undirected
         self.vertices = dict()
@@ -92,6 +95,7 @@ class Graph(object):
         self.set_of_vlb[vlb].add(vid)
         return self
 
+
     def add_edge(self, eid, frm, to, elb):
         """Add an edge to the graph."""
         if (frm is self.vertices and
@@ -107,25 +111,30 @@ class Graph(object):
             self.set_of_elb[elb].add((to, frm))
         return self
 
+
     def display(self):
         """Display the graph as text."""
-        display_str = ''
-        print('t # {}'.format(self.gid))
-        for vid in self.vertices:
-            print('v {} {}'.format(vid, self.vertices[vid].vlb))
-            display_str += 'v {} {} '.format(vid, self.vertices[vid].vlb)
+        # display_str = ''
+        # for vid in self.vertices:
+            # print('v {} {}'.format(vid, self.vertices[vid].vlb))
+            # display_str += 'v {} {} '.format(vid, self.vertices[vid].vlb)
+        count_edges = 0
         for frm in self.vertices:
             edges = self.vertices[frm].edges
             for to in edges:
                 if self.is_undirected:
                     if frm < to:
-                        print('e {} {} {}'.format(frm, to, edges[to].elb))
-                        display_str += 'e {} {} {} '.format(
-                            frm, to, edges[to].elb)
+                        count_edges += 1
+                        # print('e {} {} {}'.format(frm, to, edges[to].elb))
+                        # display_str += 'e {} {} {} '.format(
+                            # frm, to, edges[to].elb)
                 else:
-                    print('e {} {} {}'.format(frm, to, edges[to].elb))
-                    display_str += 'e {} {} {}'.format(frm, to, edges[to].elb)
-        return display_str
+                    # print('e {} {} {}'.format(frm, to, edges[to].elb))
+                    # display_str += 'e {} {} {}'.format(frm, to, edges[to].elb)
+                    count_edges += 1
+        print('t # {}, number of nodes: {}, number of edges: {}'.format(self.gid, len(self.vertices), count_edges))
+        
+        return ''
 
     def plot(self):
         """Visualize the graph."""

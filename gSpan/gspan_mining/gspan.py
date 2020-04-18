@@ -262,6 +262,22 @@ class gSpan(object):
                 self.graphs[graph_cnt] = tgraph
         return self
 
+    # @record_timestamp
+    def _generate_1edge_frequent_subgraphs_unlab(self):
+        vlb_counted = set([(g.gid, '1') for g in self.graphs.values()])
+        vlb_counter = collections.Counter()
+        cnt = vlb_counter['1']
+        if cnt > self._min_support:
+            g = Graph(gid=next(self._counter),
+                    is_undirected=self._is_undirected)
+            g.add_vertex(0, '1')
+            self._frequent_size1_subgraphs.append(g)
+            if self._min_num_vertices <= 1:
+                self._report_size1(g, support=cnt)
+        if self._min_num_vertices > 1:
+            self._counter = itertools.count()
+
+
     @record_timestamp
     def _generate_1edge_frequent_subgraphs(self):
         vlb_counter = collections.Counter()
@@ -280,6 +296,8 @@ class gSpan(object):
                     if (g.gid, (vlb1, e.elb, vlb2)) not in vevlb_counter:
                         vevlb_counter[(vlb1, e.elb, vlb2)] += 1
                     vevlb_counted.add((g.gid, (vlb1, e.elb, vlb2)))
+        # import pdb
+        # pdb.set_trace()
         # add frequent vertices.
         for vlb, cnt in vlb_counter.items():
             if cnt >= self._min_support:
@@ -291,14 +309,17 @@ class gSpan(object):
                     self._report_size1(g, support=cnt)
             else:
                 continue
+        import pdb
+        pdb.set_trace()
+        # self._frequent_size1_subgraphs is the graph that only 
         if self._min_num_vertices > 1:
             self._counter = itertools.count()
 
     @record_timestamp
     def run(self):
         """Run the gSpan algorithm."""
-        self._read_graphs()
-        self._generate_1edge_frequent_subgraphs()
+        self._read_graphs() # read from files, and create a list called graphs contains Graph
+        # self._generate_1edge_frequent_subgraphs()
         if self._max_num_vertices < 2:
             return
         root = collections.defaultdict(Projected)
@@ -309,19 +330,24 @@ class gSpan(object):
                     root[(v.vlb, e.elb, g.vertices[e.to].vlb)].append(
                         PDFS(gid, e, None)
                     )
-
         for vevlb, projected in root.items():
+            if vevlb == ('2', '1', '2'):
+                continue
+            # print(projected.gid)
             self._DFScode.append(DFSedge(0, 1, vevlb))
             self._subgraph_mining(projected)
             self._DFScode.pop()
 
     def _get_support(self, projected):
-        return len(set([pdfs.gid for pdfs in projected]))
+        gids = set([pdfs.gid for pdfs in projected])
+        print(gids)
+        return len(gids)
 
     def _report_size1(self, g, support):
-        g.display()
-        print('\nSupport: {}'.format(support))
-        print('\n-----------------\n')
+        if support <= 15:
+            g.display()
+            print('\nSupport: {}'.format(support))
+            print('\n-----------------\n')
 
     def _report(self, projected):
         self._frequent_subgraphs.append(copy.copy(self._DFScode))
@@ -329,32 +355,44 @@ class gSpan(object):
             return
         g = self._DFScode.to_graph(gid=next(self._counter),
                                    is_undirected=self._is_undirected)
-        display_str = g.display()
-        print('\nSupport: {}'.format(self._support))
+
+        if self._support <= 15:
+            # print("This graph ID: {}".format(projected.gid))
+            display_str = g.display()
+            print('\nSupport: {}'.format(self._support))
+            print('\n-----------------\n')
+
 
         # Add some report info to pandas dataframe "self._report_df".
-        self._report_df = self._report_df.append(
-            pd.DataFrame(
-                {
-                    'support': [self._support],
-                    'description': [display_str],
-                    'num_vert': self._DFScode.get_num_vertices()
-                },
-                index=[int(repr(self._counter)[6:-1])]
-            )
-        )
-        if self._visualize:
-            g.plot()
+        # self._report_df = self._report_df.append(
+        #     pd.DataFrame(
+        #         {
+        #             'support': [self._support],
+        #             'description': [display_str],
+        #             'num_vert': self._DFScode.get_num_vertices()
+        #         },
+        #         index=[int(repr(self._counter)[6:-1])]
+        #     )
+        # )
+        # if self._visualize:
+        #     g.plot()
         if self._where:
             print('where: {}'.format(list(set([p.gid for p in projected]))))
-        print('\n-----------------\n')
 
     def _get_forward_root_edges(self, g, frm):
+        """
+        from a node, find all nodes connect to that node. That have label >= root
+        """
         result = []
         v_frm = g.vertices[frm]
         for to, e in v_frm.edges.items():
             if (not self._is_undirected) or v_frm.vlb <= g.vertices[to].vlb:
                 result.append(e)
+        return result
+
+    def _get_forward_root_edges_unlab(self, g, frm):
+        v_frm = g.vertices[frm]
+        result = [ele for ele in v_frm.edges.values]
         return result
 
     def _get_backward_edge(self, g, e1, e2, history):
@@ -403,6 +441,11 @@ class gSpan(object):
         return result
 
     def _is_min(self):
+        """
+        đầu tiên tạo graph từ DFScode
+        Sau đó tạo dfs_code_min = (DFSedge(0, 1, ('1', '1', '1')))
+        Sau đó tạo root
+        """
         if self._verbose:
             print('is_min: checking {}'.format(self._DFScode))
         if len(self._DFScode) == 1:
@@ -505,7 +548,7 @@ class gSpan(object):
         return res
 
     def _subgraph_mining(self, projected):
-        self._support = self._get_support(projected)
+        self._support = self._get_support(projected) # 17
         if self._support < self._min_support:
             return
         if not self._is_min():
