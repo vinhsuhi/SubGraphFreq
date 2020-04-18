@@ -12,6 +12,7 @@ from lshash import LSHash
 from sklearn.cluster import DBSCAN
 import os
 from collections import Counter
+import time
 
 
 
@@ -190,15 +191,21 @@ if __name__ == "__main__":
             embeddings = learn_embedding(features, adj)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, args)
+            st_emb_time = time.time()
             embeddings, embeddings2 = run_graph(graph_data, args)
+            print("embedding times: {:.4f}".format(time.time() - st_emb_time))
     
 
+    st_clustering_time = time.time()
     labels = clustering(embeddings, args.clustering_method)
-    save_visualize_data(embeddings2, labels, args.clustering_method, G)
+    print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
+    # save_visualize_data(embeddings2, labels, args.clustering_method, G)
 
+    st_evaluate_time = time.time()
     success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
 
     success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
+    print("Evaluate time: {:.4f}".format(time.time() - st_evaluate_time))
 
     print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))
 
