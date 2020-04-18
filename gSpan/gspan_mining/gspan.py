@@ -356,11 +356,11 @@ class gSpan(object):
         g = self._DFScode.to_graph(gid=next(self._counter),
                                    is_undirected=self._is_undirected)
 
-        if self._support <= 15:
-            # print("This graph ID: {}".format(projected.gid))
-            display_str = g.display()
-            print('\nSupport: {}'.format(self._support))
-            print('\n-----------------\n')
+        # if self._support <= 15:
+        # print("This graph ID: {}".format(projected.gid))
+        display_str = g.display()
+        print('\nSupport: {}'.format(self._support))
+        print('\n-----------------\n')
 
 
         # Add some report info to pandas dataframe "self._report_df".
