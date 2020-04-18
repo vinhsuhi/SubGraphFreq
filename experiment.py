@@ -161,7 +161,7 @@ def create_data_for_GCN(G):
     degree = [G.degree(node) for node in G.nodes]
     edges = np.array(list(G.edges))
     features = np.ones((num_nodes, 10))
-    indexs1 = torch.LongTensor(np.array(list(G.edges).T)
+    indexs1 = torch.LongTensor(np.array(list(G.edges)).T)
     indexs2 = torch.LongTensor(np.array([(ele[1], ele[0]) for ele in list(G.edges)]).T)
     indexs3 = torch.LongTensor(np.array([(node, node) for node in range(num_nodes)]).T)
     indexs = torch.cat((indexs1, indexs2, indexs3), dim=1)
