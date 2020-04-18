@@ -94,7 +94,7 @@ def learn_embedding(features, adj, degree, edges):
     #     optimizer.step()
     batch_size = 512
 
-    optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, graphsage.parameters()), lr=args.learning_rate)
+    optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, model.parameters()), lr=0.01)
 
     n_iters = len(edges)//batch_size
      
@@ -158,7 +158,7 @@ def gen_data(path, kara_center, num_adds):
 def create_data_for_GCN(G):
     
     num_nodes = len(G.nodes)
-    degree = [G.degree(node) for node in G.nodes]
+    degree = np.array([G.degree(node) for node in G.nodes])
     edges = np.array(list(G.edges))
     features = np.ones((num_nodes, 10))
     indexs1 = torch.LongTensor(np.array(list(G.edges)).T)
