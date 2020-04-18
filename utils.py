@@ -126,7 +126,6 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name):
         for key, value in subgraphs.items():
             if key in true_labels:
                 groundtruth.append(count)
-            count += 1
             file.write('t # {}\n'.format(count))
             count += 1
             id2idx = {node: i for i, node in enumerate(list(value.nodes()))}
