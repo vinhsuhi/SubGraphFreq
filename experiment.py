@@ -74,6 +74,7 @@ def learn_embedding(features, adj):
 
 def gen_data(path, kara_center, num_adds):
     G = read_graph(path)
+    G = nx.relabel_nodes(G, {node: i for i, node in enumerate(list(G.nodes()))})
     G_mouse = read_graph('data/mouse.edges')
     max_node_label = max(G.nodes()) + 1
 
