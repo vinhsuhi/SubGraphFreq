@@ -252,8 +252,6 @@ if __name__ == "__main__":
     
     print("Clustering...")
     st_clustering_time = time.time()
-    import pdb
-    pdb.set_trace()
     labels = clustering(embeddings, args.clustering_method)
     print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
     # save_visualize_data(embeddings2, labels, args.clustering_method, G)
