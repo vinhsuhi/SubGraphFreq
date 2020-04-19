@@ -14,7 +14,6 @@ import os
 from collections import Counter
 import time
 from models.graphsage.prediction import BipartiteEdgePredLayer
-import dbscan
 
 
 def parse_args():
@@ -205,16 +204,16 @@ def save_visualize_data(embeddings, labels, method, G):
 
 
 def clustering(embeddings, method, ep=None):
-    # if method == "DBSCAN":
-    #     db = DBSCAN(eps=ep, min_samples=14, metric='cosine').fit(embeddings)
-    #     labels = db.labels_
-    #     labels = [ele + 1 for ele in labels]
-    #     cter = Counter(labels)
     if method == "DBSCAN":
-        labels = dbscan.dbscan(embeddings.T, eps, min_points)
+        db = DBSCAN(eps=ep, min_samples=14, metric='cosine').fit(embeddings)
+        labels = db.labels_
+        labels = [ele + 1 for ele in labels]
+        cter = Counter(labels)
+    # if method == "DBSCAN":
+    #     labels = dbscan.dbscan(embeddings.T, eps, min_points)
         
-        import pdb
-        pdb.set_trace()
+    #     import pdb
+    #     pdb.set_trace()
         
     elif method == "LSH":
         model = LSHash(10, 32)
