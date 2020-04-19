@@ -14,7 +14,7 @@ import os
 from collections import Counter
 import time
 from models.graphsage.prediction import BipartiteEdgePredLayer
-
+import dbscan
 
 
 def parse_args():
@@ -74,7 +74,7 @@ def learn_embedding(features, adj, degree, edges):
     cuda = True
     num_GCN_blocks = 2
     input_dim = features.shape[1]
-    output_dim = 5
+    output_dim = 2
     model = FA_GCN('tanh', num_GCN_blocks, input_dim, output_dim)
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
     features = torch.FloatTensor(features)
@@ -162,7 +162,7 @@ def create_data_for_GCN(G):
     num_nodes = len(G.nodes)
     degree = np.array([G.degree(node) for node in G.nodes])
     edges = np.array(list(G.edges))
-    features = np.ones((num_nodes, 3))
+    features = np.ones((num_nodes, 2))
     indexs1 = torch.LongTensor(np.array(list(G.edges)).T)
     indexs2 = torch.LongTensor(np.array([(ele[1], ele[0]) for ele in list(G.edges)]).T)
     indexs3 = torch.LongTensor(np.array([(node, node) for node in range(num_nodes)]).T)
@@ -205,11 +205,16 @@ def save_visualize_data(embeddings, labels, method, G):
 
 
 def clustering(embeddings, method, ep=None):
+    # if method == "DBSCAN":
+    #     db = DBSCAN(eps=ep, min_samples=14, metric='cosine').fit(embeddings)
+    #     labels = db.labels_
+    #     labels = [ele + 1 for ele in labels]
+    #     cter = Counter(labels)
     if method == "DBSCAN":
-        db = DBSCAN(eps=ep, min_samples=14, metric='cosine').fit(embeddings)
-        labels = db.labels_
-        labels = [ele + 1 for ele in labels]
-        cter = Counter(labels)
+        labels = dbscan.dbscan(embeddings.T, eps, min_points)
+        
+        import pdb
+        pdb.set_trace()
         
     elif method == "LSH":
         model = LSHash(10, 32)
