@@ -62,6 +62,7 @@ def link_pred_loss(inputs1, inputs2, embeddings, degrees):
     outputs1 = embeddings[inputs1.tolist()]
     outputs2 = embeddings[inputs2.tolist()]
     neg_outputs = embeddings[neg.tolist()]
+    batch_size = len(outputs1)
 
     link_pred_layer = BipartiteEdgePredLayer(is_normalized_input=True)
     batch_isze = len(inputs1)
@@ -73,7 +74,7 @@ def learn_embedding(features, adj, degree, edges):
     cuda = True
     num_GCN_blocks = 2
     input_dim = features.shape[1]
-    output_dim = 20
+    output_dim = 5
     model = FA_GCN('tanh', num_GCN_blocks, input_dim, output_dim)
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
     features = torch.FloatTensor(features)
@@ -83,7 +84,7 @@ def learn_embedding(features, adj, degree, edges):
         adj = adj.cuda()
         model = model.cuda()
 
-    num_epochs = 20
+    num_epochs = args.epochs
 
     # for epoch in tqdm(range(num_epochs), desc="Training..."):
     #     optimizer.zero_grad()
@@ -92,7 +93,7 @@ def learn_embedding(features, adj, degree, edges):
     #     print("loss: {:.4f}".format(loss.data))
     #     loss.backward()
     #     optimizer.step()
-    batch_size = 512
+    batch_size = args.batch_size
 
     optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, model.parameters()), lr=0.01)
 
@@ -110,9 +111,10 @@ def learn_embedding(features, adj, degree, edges):
             optimizer.step()
             print("Loss: {:.4f}".format(loss.data))
 
-    
+    print("vinhsuhi1")
     embeddings = torch.cat(outputs, dim=1)
     embeddings = embeddings.detach().cpu().numpy()
+    print("vinhsuhi2")
     return embeddings
 
 
@@ -160,7 +162,7 @@ def create_data_for_GCN(G):
     num_nodes = len(G.nodes)
     degree = np.array([G.degree(node) for node in G.nodes])
     edges = np.array(list(G.edges))
-    features = np.ones((num_nodes, 10))
+    features = np.ones((num_nodes, 3))
     indexs1 = torch.LongTensor(np.array(list(G.edges)).T)
     indexs2 = torch.LongTensor(np.array([(ele[1], ele[0]) for ele in list(G.edges)]).T)
     indexs3 = torch.LongTensor(np.array([(node, node) for node in range(num_nodes)]).T)
@@ -248,8 +250,10 @@ if __name__ == "__main__":
             embeddings, embeddings2 = run_graph(graph_data, args)
             print("embedding times: {:.4f}".format(time.time() - st_emb_time))
     
-
+    print("Clustering...")
     st_clustering_time = time.time()
+    import pdb
+    pdb.set_trace()
     labels = clustering(embeddings, args.clustering_method)
     print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
     # save_visualize_data(embeddings2, labels, args.clustering_method, G)
