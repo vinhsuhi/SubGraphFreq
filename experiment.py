@@ -204,9 +204,9 @@ def save_visualize_data(embeddings, labels, method, G):
     print("DONE saving to file!")
 
 
-def clustering(embeddings, method):
+def clustering(embeddings, method, ep=None):
     if method == "DBSCAN":
-        db = DBSCAN(eps=0.01, min_samples=14, metric='cosine').fit(embeddings)
+        db = DBSCAN(eps=ep, min_samples=14, metric='cosine').fit(embeddings)
         labels = db.labels_
         labels = [ele + 1 for ele in labels]
         cter = Counter(labels)
@@ -252,14 +252,18 @@ if __name__ == "__main__":
     
     print("Clustering...")
     st_clustering_time = time.time()
-    labels = clustering(embeddings, args.clustering_method)
-    print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
-    # save_visualize_data(embeddings2, labels, args.clustering_method, G)
+    for ep in [0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001]:
+        print(ep)
+        labels = clustering(embeddings, args.clustering_method, ep)
+        if len(Counter(labels)) < 3:
+            continue
+        print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
+        # save_visualize_data(embeddings2, labels, args.clustering_method, G)
 
-    st_evaluate_time = time.time()
-    success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
+        st_evaluate_time = time.time()
+        success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
 
-    success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
+        success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
     print("Evaluate time: {:.4f}".format(time.time() - st_evaluate_time))
 
     print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))

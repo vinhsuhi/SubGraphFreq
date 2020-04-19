@@ -85,6 +85,7 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
     labels_center = [labels[index] for index in centers]
     print("labels of center nodes: ")
     print(Counter(labels_center))
+    return
     if len(Counter(labels_center)) > 1:
         pass
     else:
@@ -94,20 +95,6 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
             return 1
         results = get_bfs_results(Graph, points_in_label)
         results = save_subgraph(Graph, points_in_label, centers, file_name)
-        """
-        for depth in results:
-            result_depth = results[depth]
-            max_len = 0
-            max_len_group = None
-            for gr_key in result_depth:
-                gr = result_depth[gr_key]
-                if len(gr['points']) > max_len:
-                    max_len = len(gr['points'])
-                    max_len_group = gr['points']
-            print("Depth: {}, group: {}".format(depth, max_len_group))
-            print("Depth: {}, BFS_acc: {:.4f}".format(depth, jaccard_distance(max_len_group, centers)))
-        print(results)
-        """
     return 1
 
 
