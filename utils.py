@@ -68,16 +68,16 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
 
 def evaluate(embeddings, centers, labels, Graph, file_name):
     print("-"*100)
-    simi = embeddings.dot(embeddings.T)
-    simi_center1 = simi[centers[0]]
-    arg_sort = simi_center1.argsort()[::-1]
-    print("The centers are: ")
+    # simi = embeddings.dot(embeddings.T)
+    # simi_center1 = simi[centers[0]]
+    # arg_sort = simi_center1.argsort()[::-1]
+    # print("The centers are: ")
     print(centers)
     # print("{} cloest nodes to the 'center1' is: ".format(len(centers)))
     # print(arg_sort[:len(centers)].tolist())
     # print("The similarity values between those nodes and 'center1' is: ")
     # print(simi_center1[arg_sort][:len(centers)].tolist())
-    print("ACC: {:.4f}".format(jaccard_distance(arg_sort[:len(centers)].tolist(), centers)))
+    # print("ACC: {:.4f}".format(jaccard_distance(arg_sort[:len(centers)].tolist(), centers)))
 
     print("CLUTERING RESULTs")
     # print("frequency...")
