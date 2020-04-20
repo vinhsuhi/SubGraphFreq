@@ -38,7 +38,7 @@ class SupervisedGraphSage(nn.Module):
 
         self.linear1 = nn.Linear(2*self.feat_data.shape[1], self.feat_data.shape[1])
         self.tanh = nn.Tanh()
-        self.linear2 = nn.Linear(2*self.feat_data.shape[1], self.args.dim_2)        
+        self.linear2 = nn.Linear(2*self.feat_data.shape[1], self.args.feat_dim)        
 
         self.neg_sample_size = 10
         self.degrees = degrees
