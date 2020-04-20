@@ -50,7 +50,7 @@ class SupervisedGraphSage(nn.Module):
         pdb.set_trace()
     
     def aggregator(self, nodes):   
-        if self.args.cuda:
+        # if self.args.cuda:
         init_nodes = nodes
         emb_hop2 = torch.zeros(len(nodes),2*([1]))
         
