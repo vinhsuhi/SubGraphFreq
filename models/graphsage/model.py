@@ -52,7 +52,7 @@ class SupervisedGraphSage(nn.Module):
     
 
     def agg_one_hop(self, nodes):
-        node_feats = self.feat_data[nodes]
+        node_feats = self.feat_data[[ele for ele in nodes if ele >= 0]]
         neighbors = []
         for node in nodes:
             if node < 0:
@@ -62,8 +62,12 @@ class SupervisedGraphSage(nn.Module):
         if self.args.cuda:
             neighbor_matrix = neighbor_matrix.cuda()
         neighbor_emb = self.feat_data[neighbor_matrix].sum(dim=1)
-        agg = torch.cat((node_feats, neighbor_emb), dim=1)
-        emb = self.linear1(agg)
+        try:
+            agg = torch.cat((node_feats, neighbor_emb), dim=1)
+            emb = self.linear1(agg)
+        except:
+            import pdb
+            pdb.set_trace()
         return emb
 
 
@@ -75,12 +79,11 @@ class SupervisedGraphSage(nn.Module):
         neighbor_embeddings = torch.zeros((len(nodes), self.args.feat_dim))
         if self.args.cuda:
             neighbor_embeddings = neighbor_embeddings.cuda()
-        for node in nodes:
+        for i, node in enumerate(nodes):
             neighbors_node = self.adj_lists[node]
-            neighbor_emb = self.agg_one_hop(neighbors_node)
+            neighbor_emb = self.agg_one_hop(neighbors_node).sum(dim=0).flatten()
             # neighbor_embeddings.append(neighbor_emb)
             neighbor_embeddings[i] = neighbor_emb
-        
         final_embedding = self.linear2(torch.cat((node_feats, neighbor_embeddings), dim=1))
 
         return final_embedding
