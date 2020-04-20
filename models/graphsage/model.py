@@ -39,10 +39,10 @@ class SupervisedGraphSage(nn.Module):
         self.linear2 = nn.Linear(2*self.feat_data.shape[1], self.args.dim_2)        
 
         self.neg_sample_size = 10
-       
         self.degrees = degrees
         self.normalize_embedding = True
         self.link_pred_layer = BipartiteEdgePredLayer(is_normalized_input=self.normalize_embedding)
+        self.max_degree = np.max(self.degrees)
     
     def aggregator(self, nodes):   
         if self.args.cuda:
@@ -50,11 +50,14 @@ class SupervisedGraphSage(nn.Module):
             self.feat_data = self.feat_data.cuda()
             #self.adj_lists = self.adj_lists.cuda()
         init_nodes = nodes
-        emb_hop2 = torch.zeros(len(nodes),2*(self.feat_data.shape[1]))
+        emb_hop2 = torch.zeros(len(nodes),2*([1]))
         
-        for node in init_nodes:
+        for node in init_nodes:self.feat_data.shape
             nodes = set(nodes).union(self.adj_lists[node])
+
+        
         emb_hop1 = torch.zeros(len(nodes),2*(self.feat_data.shape[1]))
+
         if self.args.cuda:
             emb_hop1 = emb_hop1.cuda()
             emb_hop2 = emb_hop2.cuda()
@@ -65,6 +68,8 @@ class SupervisedGraphSage(nn.Module):
             sum1 = 0
             for neigh in self.adj_lists[node]:
                 sum1 += self.feat_data[neigh]
+            import pdb
+            pdb.set_trace()
             node_emb = torch.cat([self.feat_data[node],sum1]) # / len(self.adj_lists[node])])
             emb_hop1[new_id2idx[node]] = node_emb
         
