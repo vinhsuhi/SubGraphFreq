@@ -15,6 +15,7 @@ from models.graphsage.encoders import Encoder
 from models.graphsage.aggregators import MeanAggregator
 from models.graphsage.prediction import BipartiteEdgePredLayer
 import pdb
+import time
 
 """
 Simple supervised GraphSAGE model as well as examples running the model
@@ -43,12 +44,13 @@ class SupervisedGraphSage(nn.Module):
         self.normalize_embedding = True
         self.link_pred_layer = BipartiteEdgePredLayer(is_normalized_input=self.normalize_embedding)
         self.max_degree = np.max(self.degrees)
+        if self.args.cuda: 
+            self.feat_data = self.feat_data.cuda()
+        import pdb
+        pdb.set_trace()
     
     def aggregator(self, nodes):   
         if self.args.cuda:
-            #nodes = nodes.cuda()
-            self.feat_data = self.feat_data.cuda()
-            #self.adj_lists = self.adj_lists.cuda()
         init_nodes = nodes
         emb_hop2 = torch.zeros(len(nodes),2*([1]))
         
