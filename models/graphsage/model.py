@@ -33,6 +33,7 @@ class SupervisedGraphSage(nn.Module):
         super(SupervisedGraphSage, self).__init__()
         self.args = args
         self.adj_lists = adj_lists
+        feat_data = np.concatenate((feat_data, np.zeros((1, feat_data.shape[1]))))
         self.feat_data = Variable(torch.FloatTensor(feat_data), requires_grad = False)
 
         self.linear1 = nn.Linear(2*self.feat_data.shape[1], self.feat_data.shape[1])
@@ -60,14 +61,11 @@ class SupervisedGraphSage(nn.Module):
 
         neighbor_matrix = torch.LongTensor(np.array(neighbors))
 
-        neighbor_emb = self.feat_data[neighbor_matrix]
-
-        import pdb
-        pdb.set_trace()
+        neighbor_emb = self.feat_data[neighbor_matrix].sum(dim=1)
 
         agg = torch.cat((node_feats, neighbor_emb), dim=1)
 
-        emb = self.linear1()
+        emb = self.linear1(agg)
 
         return emb
 
