@@ -85,14 +85,13 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
     labels_center = [labels[index] for index in centers]
     print("labels of center nodes: ")
     print(Counter(labels_center))
-    return
     if len(Counter(labels_center)) > 1:
         pass
     else:
         label = labels[centers[0]]
         points_in_label = [index for index in range(len(labels)) if labels[index] == label]
-        if len(points_in_label) > 300:
-            return 1
+        # if len(points_in_label) > 300:
+        #     return 1
         results = get_bfs_results(Graph, points_in_label)
         results = save_subgraph(Graph, points_in_label, centers, file_name)
     return 1
