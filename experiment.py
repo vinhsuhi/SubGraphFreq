@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--cuda', action = "store_true")
     # parser.add_argument('--dim_1', default = 10, type = int)
     # parser.add_argument('--dim_2', default = 10, type = int)
-    parser.add_argument('--feat_dim', default=2, type=int)
+    parser.add_argument('--feat_dim', default=6, type=int)
     parser.add_argument('--epochs', default=3,   help='Number of epochs to train.', type=int)
     parser.add_argument('--clustering_method', default='DBSCAN', help="choose between DBSCAN and LSH")
     parser.add_argument('--num_adds', default=3, type=int)
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     print("Clustering...")
     st_clustering_time = time.time()
     # for ep in [0.001, 0.0001, 0.00001, 0.000001, 0.0000001]:
-    for ep in [1e-3]:
+    for ep in [1e-6]:
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
         if len(Counter(labels)) < 3:
