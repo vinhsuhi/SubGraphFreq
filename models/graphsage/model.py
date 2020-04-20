@@ -55,7 +55,8 @@ class SupervisedGraphSage(nn.Module):
     
 
     def agg_one_hop(self, nodes):
-        node_feats = self.feat_data[[ele for ele in nodes if ele >= 0]]
+        nodes = list(nodes)
+        node_feats = self.feat_data[nodes]
         neighbors_feat = self.feats[nodes]
         agg = torch.cat((node_feats, neighbors_feat), dim=1)
         emb = self.linear1(agg)
