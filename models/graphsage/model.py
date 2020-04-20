@@ -52,7 +52,7 @@ class SupervisedGraphSage(nn.Module):
         init_nodes = nodes
         emb_hop2 = torch.zeros(len(nodes),2*([1]))
         
-        for node in init_nodes:self.feat_data.shape
+        for node in init_nodes:
             nodes = set(nodes).union(self.adj_lists[node])
 
         
