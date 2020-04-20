@@ -97,10 +97,13 @@ class Dataset:
     def construct_all_adj(self):
         self.full_adj = {}
         for nodeid in self.nodes_ids:
-            neighbors = np.array([self.id_map[neighbor]
+            neighbors = [self.id_map[neighbor]
                 for neighbor in self.G.neighbors(nodeid)
-            ])
-            self.full_adj[self.id_map[nodeid]] = set(neighbors)        
+            ]
+            if len(neighbors) < 300:
+                neighbors += [-1] * (300 - len(neighbors))
+            neighbors = neighbors[:300]
+            self.full_adj[self.id_map[nodeid]] = neighbors     
 
 
 if __name__ == "__main__":

@@ -46,11 +46,51 @@ class SupervisedGraphSage(nn.Module):
         self.max_degree = np.max(self.degrees)
         if self.args.cuda: 
             self.feat_data = self.feat_data.cuda()
+        # import pdb
+        # pdb.set_trace()
+    
+
+    def agg_one_hop(self, nodes):
+        node_feats = self.feat_data[nodes]
+        neighbors = []
+        for node in nodes:
+            if node < 0:
+                break
+            neighbors.append(self.adj_lists[node])
+
+        neighbor_matrix = torch.LongTensor(np.array(neighbors))
+
+        neighbor_emb = self.feat_data[neighbor_matrix]
+
         import pdb
         pdb.set_trace()
-    
-    def aggregator(self, nodes):   
+
+        agg = torch.cat((node_feats, neighbor_emb), dim=1)
+
+        emb = self.linear1()
+
+        return emb
+
+
+    def aggregator(self, nodes):
+        """
+        """
+        # first, agg neighbors, by neighbors of neighbor
+        node_feats = self.feat_data[nodes]
+        neighbor_embeddings = []
+        for node in nodes:
+            neighbors_node = self.adj_lists[node]
+            neighbor_emb = self.agg_one_hop(neighbors_node)
+            neighbor_embeddings.append(neighbor_emb)
+        
+        # neighbor_embeddings
+
+        # second, agg
+
+
+
         # if self.args.cuda:
+        """
         init_nodes = nodes
         emb_hop2 = torch.zeros(len(nodes),2*([1]))
         
@@ -70,8 +110,6 @@ class SupervisedGraphSage(nn.Module):
             sum1 = 0
             for neigh in self.adj_lists[node]:
                 sum1 += self.feat_data[neigh]
-            import pdb
-            pdb.set_trace()
             node_emb = torch.cat([self.feat_data[node],sum1]) # / len(self.adj_lists[node])])
             emb_hop1[new_id2idx[node]] = node_emb
         
@@ -87,6 +125,7 @@ class SupervisedGraphSage(nn.Module):
             emb_hop2[i] = node_emb
         emb_hop = self.linear2(emb_hop2)
         return emb_hop
+        """
 
     def forward(self, inputs1, inputs2):        
         neg = fixed_unigram_candidate_sampler(
