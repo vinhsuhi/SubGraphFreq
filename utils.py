@@ -262,15 +262,10 @@ def save_graph(sub_feats, G, id_map, dataset_name, dir):
     print("Saving Graph")
     num_nodes = len(list(G.nodes))
     rand_indices = np.random.permutation(num_nodes)
-    train = rand_indices[:int(num_nodes * 0.81)]
-    val = rand_indices[int(num_nodes * 0.81):int(num_nodes * 0.9)]
-    test = rand_indices[int(num_nodes * 0.9):]
     res = json_graph.node_link_data(G)    
     res['nodes'] = [
         {
-            'id': node['id'],
-            'val': id_map[str(node['id'])] in val,
-            'test': id_map[str(node['id'])] in test
+            'id': node['id']
         }
         for node in res['nodes']]
                     

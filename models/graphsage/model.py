@@ -16,6 +16,7 @@ from models.graphsage.aggregators import MeanAggregator
 from models.graphsage.prediction import BipartiteEdgePredLayer
 import pdb
 import time
+from copy import deepcopy
 
 """
 Simple supervised GraphSAGE model as well as examples running the model
@@ -33,7 +34,7 @@ class SupervisedGraphSage(nn.Module):
         super(SupervisedGraphSage, self).__init__()
         self.args = args
         self.adj_lists = adj_lists
-        feat_data = np.concatenate((feat_data, np.zeros((1, feat_data.shape[1]))))
+        # feat_data = np.concatenate((feat_data, np.zeros((1, feat_data.shape[1]))))
         self.feat_data = Variable(torch.FloatTensor(feat_data), requires_grad = False)
 
         self.linear1 = nn.Linear(2*self.feat_data.shape[1], self.feat_data.shape[1])
@@ -45,13 +46,23 @@ class SupervisedGraphSage(nn.Module):
         self.normalize_embedding = True
         self.link_pred_layer = BipartiteEdgePredLayer(is_normalized_input=self.normalize_embedding)
         self.max_degree = np.max(self.degrees)
+        self.feats = torch.FloatTensor(np.array([[degrees[i]] * self.args.feat_dim for i in range(len(degrees))]))
         if self.args.cuda: 
+            self.feats = self.feats.cuda()
             self.feat_data = self.feat_data.cuda()
         # import pdb
         # pdb.set_trace()
     
 
     def agg_one_hop(self, nodes):
+        node_feats = self.feat_data[[ele for ele in nodes if ele >= 0]]
+        neighbors_feat = self.feats[nodes]
+        agg = torch.cat((node_feats, neighbors_feat), dim=1)
+        emb = self.linear1(agg)
+        return emb
+
+
+        """
         node_feats = self.feat_data[[ele for ele in nodes if ele >= 0]]
         neighbors = []
         for node in nodes:
@@ -69,6 +80,43 @@ class SupervisedGraphSage(nn.Module):
             import pdb
             pdb.set_trace()
         return emb
+        """
+
+
+    def old_agg(self, nodes):
+        for node in init_nodes:
+            nodes = set(nodes).union(self.adj_lists[node])
+
+        
+        emb_hop1 = torch.zeros(len(nodes),2*(self.feat_data.shape[1]))
+
+        if self.args.cuda:
+            emb_hop1 = emb_hop1.cuda()
+            emb_hop2 = emb_hop2.cuda()
+  
+        new_id2idx = {node:i for i,node in enumerate(nodes)}
+
+
+        
+        for node in nodes:
+            sum1 = 0
+            for neigh in self.adj_lists[node]:
+                sum1 += self.feat_data[neigh]
+            node_emb = torch.cat([self.feat_data[node],sum1]) # / len(self.adj_lists[node])])
+            emb_hop1[new_id2idx[node]] = node_emb
+        
+        emb_hop1 = self.linear1(emb_hop1)
+        emb_hop1 = self.tanh(emb_hop1)
+
+
+        for i,node in enumerate(init_nodes):
+            sum2 = 0
+            for neigh in self.adj_lists[node]:
+                sum2 += emb_hop1[new_id2idx[neigh]]
+            node_emb = torch.cat([self.feat_data[node],sum2]) # / len(self.adj_lists[node])])
+            emb_hop2[i] = node_emb
+        emb_hop = self.linear2(emb_hop2)
+        return emb_hop
 
 
     def aggregator(self, nodes):
@@ -96,40 +144,7 @@ class SupervisedGraphSage(nn.Module):
 
         # if self.args.cuda:
         """
-        init_nodes = nodes
-        emb_hop2 = torch.zeros(len(nodes),2*([1]))
         
-        for node in init_nodes:
-            nodes = set(nodes).union(self.adj_lists[node])
-
-        
-        emb_hop1 = torch.zeros(len(nodes),2*(self.feat_data.shape[1]))
-
-        if self.args.cuda:
-            emb_hop1 = emb_hop1.cuda()
-            emb_hop2 = emb_hop2.cuda()
-  
-        new_id2idx = {node:i for i,node in enumerate(nodes)}
-        
-        for node in nodes:
-            sum1 = 0
-            for neigh in self.adj_lists[node]:
-                sum1 += self.feat_data[neigh]
-            node_emb = torch.cat([self.feat_data[node],sum1]) # / len(self.adj_lists[node])])
-            emb_hop1[new_id2idx[node]] = node_emb
-        
-        emb_hop1 = self.linear1(emb_hop1)
-        emb_hop1 = self.tanh(emb_hop1)
-
-
-        for i,node in enumerate(init_nodes):
-            sum2 = 0
-            for neigh in self.adj_lists[node]:
-                sum2 += emb_hop1[new_id2idx[neigh]]
-            node_emb = torch.cat([self.feat_data[node],sum2]) # / len(self.adj_lists[node])])
-            emb_hop2[i] = node_emb
-        emb_hop = self.linear2(emb_hop2)
-        return emb_hop
         """
 
     def forward(self, inputs1, inputs2):        
