@@ -48,6 +48,21 @@ def read_graph(path):
     return G
 
 
+def read_attributed_graph(path):
+    edges = []
+    atts = []
+    with open(path, 'r', encoding='utf-8') as file:
+        for line in file:
+            data_line = line.split()
+            edges.append((int(data_line[0]), int(data_line[1])))
+            atts.append(int(data_line[2]))
+    G = nx.Graph() 
+    G.add_edges_from(edges)
+    atts = np.array(atts)
+    return G, atts
+        
+
+
 def create_adj(edges, num_nodes):
     adj = np.zeros((num_nodes, num_nodes))
     for edge in edges:
