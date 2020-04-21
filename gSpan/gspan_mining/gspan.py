@@ -323,6 +323,7 @@ class gSpan(object):
         if self._max_num_vertices < 2:
             return
         root = collections.defaultdict(Projected)
+
         for gid, g in self.graphs.items():
             for vid, v in g.vertices.items():
                 edges = self._get_forward_root_edges(g, vid)
@@ -330,6 +331,7 @@ class gSpan(object):
                     root[(v.vlb, e.elb, g.vertices[e.to].vlb)].append(
                         PDFS(gid, e, None)
                     )
+        
         for vevlb, projected in root.items():
             if vevlb == ('2', '1', '2'):
                 continue

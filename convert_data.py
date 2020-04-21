@@ -9,7 +9,7 @@ def read_source(path):
         for line in file:
             if 'e' in line:
                 data_line = line.split()
-                edge_0, edge_1 = int(data_line[1]), int(data_line[2])
+                edge_0, edge_1 = int(data_line[1]), int(data_line[2]), int(data_line[3])
                 edges.append([edge_0, edge_1])
     file.close()
 
@@ -19,7 +19,7 @@ def read_source(path):
 def save_edge_list(edges, to_save):
     with open(to_save, 'w', encoding='utf-8') as file:
         for edge in edges:
-            file.write("{}\t{}\n".format(*edge))
+            file.write("{}\t{}\t{}\n".format(*edge))
     file.close()
     
 

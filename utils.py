@@ -49,17 +49,25 @@ def read_graph(path):
 
 
 def read_attributed_graph(path):
+    nodes = []
+    label_nodes = {}
+    label_edges = {}
     edges = []
-    atts = []
     with open(path, 'r', encoding='utf-8') as file:
         for line in file:
             data_line = line.split()
-            edges.append((int(data_line[0]), int(data_line[1])))
-            atts.append(int(data_line[2]))
+            if 'v' in line:
+                nodes.append(int(data_line[1]))
+                label_nodes[int(data_line[1])] = int(data_line[2])
+            elif 'e' in line:
+                edges.append((int(data_line[1]), int(data_line[2])))
+                label_edges[(int(data_line[1]), int(data_line[2]))] = int(data_line[3])
+            
     G = nx.Graph() 
+    G.add_nodes_from(nodes)
     G.add_edges_from(edges)
-    atts = np.array(atts)
-    return G, atts
+    # atts = np.array(atts)
+    return G, label_edges, label_nodes
         
 
 
