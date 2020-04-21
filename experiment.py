@@ -119,8 +119,13 @@ def learn_embedding(features, adj, degree, edges):
 def gen_data(path, kara_center, num_adds, labels=[]):
     # G = read_graph(path)
     G, label_edges, label_nodes = read_attributed_graph(path)
-    import pdb
-    pdb.set_trace()
+    max_feats_label = max(list(label_nodes.values())) 
+    max_edge_feats_label = max(list(label_edges.values()))
+
+    node_feats = np.array(list(label_nodes.values()))
+
+    # import pdb
+    # pdb.set_trace()
     G = nx.relabel_nodes(G, {node: i for i, node in enumerate(list(G.nodes()))})
     G_mouse = read_graph('data/mouse.edges')
     max_node_label = max(G.nodes()) + 1
@@ -132,9 +137,12 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
 
     # 1
+    num_node1 = 0
     center1s = []
+    label_edges_this = []
     for i in range(num_adds):
-        edges, center, mapping = create_small_graph(max_node_label, kara_center, nodes_to_remove)
+
+        edges, center, mapping, num_node1 = create_small_graph(max_node_label, kara_center, nodes_to_remove)
         center1s.append(center)
         G.add_edges_from(edges)
         max_node_label = max(G.nodes()) + 1
@@ -142,10 +150,37 @@ def gen_data(path, kara_center, num_adds, labels=[]):
         nodes_to_concat = np.array([mapping[ele] for ele in [26]]) + max_node_label
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
         G.add_edges_from(pseudo_edges)
+        if i == 0:
+            for i in range(len(edges)):
+                edge = edges[i]
+                label =  np.random.randint(0, max_edge_feats_label, 1)[0]
+                label_edges[(edge[0], edge[1])] = label
+                label_edges_this.append(label)
+            for j in range(len(pseudo_edges)):
+                edge = pseudo_edges[j]
+                label =  np.random.randint(0, max_edge_feats_label, 1)[0]
+                label_edges[(edge[0], edge[1])] = label
+                label_edges_this.append(label)
+        else:
+            for i in range(label_edges_this):
+                edge = None
+                if i < len(edges):
+                    edge = edges[i]
+                else:
+                    edge = pseudo_edges[i - len(edges)]
+                label_edges[(edge[0], edge[1])] = label_edges_this[i]
+        
 
+    # features_sub = np.zeros((num_node1s, max_feats_label))
+    # features_sub[:, np.random.randint(0, max_feats_label, num_node1)] = 1
+    node_feats_sub1 = np.random.randint(0, max_feats_label, num_node1).tolist()
+    node_feats_sub1 = node_feats_sub1 * num_adds
+
+    num_node2s = 0
     center2s = []
+    label_edges_this = []
     for i in range(num_adds):
-        edges, center, mapping = create_small_graph2(G_mouse, max_node_label, 9)
+        edges, center, mapping, num_node2 = create_small_graph2(G_mouse, max_node_label, 9)
         center2s.append(center)
         G.add_edges_from(edges)
         max_node_label = max(G.nodes()) + 1
@@ -153,17 +188,50 @@ def gen_data(path, kara_center, num_adds, labels=[]):
         nodes_to_concat = np.array([mapping[ele] for ele in [1]]) + max_node_label
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
         G.add_edges_from(pseudo_edges)
+        num_node2s += num_node2
+
+        if i == 0:
+            for i in range(len(edges)):
+                edge = edges[i]
+                label =  np.random.randint(0, max_edge_feats_label, 1)[0]
+                label_edges[(edge[0], edge[1])] = label
+                label_edges_this.append(label)
+            for j in range(len(pseudo_edges)):
+                edge = pseudo_edges[j]
+                label =  np.random.randint(0, max_edge_feats_label, 1)[0]
+                label_edges[(edge[0], edge[1])] = label
+                label_edges_this.append(label)
+        else:
+            for i in range(label_edges_this):
+                edge = None
+                if i < len(edges):
+                    edge = edges[i]
+                else:
+                    edge = pseudo_edges[i - len(edges)]
+                label_edges[(edge[0], edge[1])] = label_edges_this[i]
+        
+
+    node_feats_sub2 = np.random.randint(0, max_feats_label, num_node2).tolist()
+    node_feats_sub2 = node_feats_sub2 * num_adds
+
+
+    node_feats = np.concatenate((node_feats, node_feats_sub1, node_feats_sub2))
 
     print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
-    return G, center1s, center2s
+    return G, center1s, center2s, node_feats, label_edges
 
 
-def create_data_for_GCN(G):
+def create_data_for_GCN(G, node_feats):
     
     num_nodes = len(G.nodes)
     degree = np.array([G.degree(node) for node in G.nodes])
     edges = np.array(list(G.edges))
-    features = np.ones((num_nodes, 2))
+    if np.min(node_feats) <= 0:
+        print("Be care full, min node label should be larger than 0")
+    # features = np.ones((num_nodes, 2))
+    features = np.zeros((num_nodes, np.max(node_feats)))
+    features[:, node_feats - 1] = 1
+
     indexs1 = torch.LongTensor(np.array(list(G.edges)).T)
     indexs2 = torch.LongTensor(np.array([(ele[1], ele[0]) for ele in list(G.edges)]).T)
     indexs3 = torch.LongTensor(np.array([(node, node) for node in range(num_nodes)]).T)
@@ -241,14 +309,21 @@ if __name__ == "__main__":
     kara_center = 2
     # path = 'data/bio-DM-LC.edges'
 
-    G, center1s, center2s = gen_data(args.large_graph_path, kara_center, args.num_adds)
+    G, center1s, center2s, node_feats, edge_feats = gen_data(args.large_graph_path, kara_center, args.num_adds)
+
+    print("Number of nodes: {}".format(len(G.nodes)))
+    print("Number of edges: {}".format(len(G.edges)))
+    print("Number of node labels: {}".format(len(edge_feats)))
+    print("Number of edge labels: {}".format(len(edge_feats)))
+    import pdb
+    pdb.set_trace()
 
     if args.load_embs:
         embeddings2 = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
         embeddings = F.normalize(torch.FloatTensor(embeddings2)).detach().cpu().numpy()
     else:
         if args.model == "GCN":
-            features, adj, degree, edges = create_data_for_GCN(G)
+            features, adj, degree, edges = create_data_for_GCN(G, node_feats)
             embeddings = learn_embedding(features, adj, degree, edges)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, args)
@@ -268,9 +343,9 @@ if __name__ == "__main__":
         # save_visualize_data(embeddings2, labels, args.clustering_method, G)
 
         st_evaluate_time = time.time()
-        success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
+        success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name), node_feats, edge_feats)
 
-        success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
+        success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name), node_feats, edge_feats)
     print("Evaluate time: {:.4f}".format(time.time() - st_evaluate_time))
 
     print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))

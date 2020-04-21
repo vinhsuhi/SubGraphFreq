@@ -21,7 +21,8 @@ def create_small_graph(max_node_label, kara_center=2, nodes_to_remove=[]):
     edges = karate_graph.edges()
     edges = np.array(edges)
     edges += max_node_label
-    return edges, center, mapping
+    num_nodes = len(karate_graph.nodes)
+    return edges, center, mapping, num_nodes
 
 
 def create_small_graph2(graph, max_node_label, center):
@@ -31,7 +32,8 @@ def create_small_graph2(graph, max_node_label, center):
     edges = graph.edges()
     edges = np.array(edges)
     edges += max_node_label
-    return edges, center, mapping
+    num_nodes = len(graph.nodes)
+    return edges, center, mapping, num_nodes
 
 
 
@@ -89,21 +91,10 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     return pseudo_edges
 
 
-def evaluate(embeddings, centers, labels, Graph, file_name):
+def evaluate(embeddings, centers, labels, Graph, file_name, node_feats, edge_feats):
     print("-"*100)
-    # simi = embeddings.dot(embeddings.T)
-    # simi_center1 = simi[centers[0]]
-    # arg_sort = simi_center1.argsort()[::-1]
-    # print("The centers are: ")
     print(centers)
-    # print("{} cloest nodes to the 'center1' is: ".format(len(centers)))
-    # print(arg_sort[:len(centers)].tolist())
-    # print("The similarity values between those nodes and 'center1' is: ")
-    # print(simi_center1[arg_sort][:len(centers)].tolist())
-    # print("ACC: {:.4f}".format(jaccard_distance(arg_sort[:len(centers)].tolist(), centers)))
-
     print("CLUTERING RESULTs")
-    # print("frequency...")
     print(Counter(labels))
     labels_center = [labels[index] for index in centers]
     print("labels of center nodes: ")
@@ -113,14 +104,13 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
     else:
         label = labels[centers[0]]
         points_in_label = [index for index in range(len(labels)) if labels[index] == label]
-        # if len(points_in_label) > 300:
-        #     return 1
-        results = save_subgraph(Graph, points_in_label, centers, file_name)
+        results = save_subgraph(Graph, points_in_label, centers, file_name, node_feats, edge_feats)
     return 1
 
 
 
-def save_subgraph(Graph, points_in_label, true_labels, file_name):
+def save_subgraph(Graph, points_in_label, true_labels, file_name, node_feats, edge_feats):
+    # node_feats += 1
     print(true_labels)
     subgraphs = {}
 
@@ -139,13 +129,12 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name):
             id2idx = {node: i for i, node in enumerate(list(value.nodes()))}
             for node in id2idx:
                 if node == key:
-                    file.write('v {} 1\n'.format(id2idx[node]))
+                    file.write('v {} {}\n'.format(id2idx[node], node_feats[node]))
                 else:
-                    file.write('v {} 2\n'.format(id2idx[node]))
+                    file.write('v {} {}\n'.format(id2idx[node], node_feats[node]))
                 
-
             for edge in value.edges():
-                file.write('e {} {} 1\n'.format(id2idx[edge[0]], id2idx[edge[1]]))
+                file.write('e {} {} {}\n'.format(id2idx[edge[0]], id2idx[edge[1]], edge_feats((edge[0], edge[1]))))
             # with open(file_name + '_id2idx{}'.format(count - 1), 'w', encoding='utf-8') as f2:
             #     for node in id2idx:
             #         f2.write('{} {}\n'.format(node, id2idx[node]))
