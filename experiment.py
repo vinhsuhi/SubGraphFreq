@@ -5,7 +5,7 @@ from models.GCN import FA_GCN
 import torch
 from tqdm import tqdm
 import torch.nn.functional as F
-from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2
+from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2, read_attributed_graph
 from models.graphsage.model import run_graph
 import argparse
 from lshash import LSHash
@@ -118,7 +118,7 @@ def learn_embedding(features, adj, degree, edges):
 
 def gen_data(path, kara_center, num_adds, labels=[]):
     # G = read_graph(path)
-    G, att = read_graph(path)
+    G, att = read_attributed_graph(path)
     import pdb
     pdb.set_trace()
     exit()
