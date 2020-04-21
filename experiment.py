@@ -111,15 +111,17 @@ def learn_embedding(features, adj, degree, edges):
             optimizer.step()
             print("Loss: {:.4f}".format(loss.data))
 
-    print("vinhsuhi1")
     embeddings = torch.cat(outputs, dim=1)
     embeddings = embeddings.detach().cpu().numpy()
-    print("vinhsuhi2")
     return embeddings
 
 
-def gen_data(path, kara_center, num_adds):
-    G = read_graph(path)
+def gen_data(path, kara_center, num_adds, labels=[]):
+    # G = read_graph(path)
+    G, att = read_graph(path)
+    import pdb
+    pdb.set_trace()
+    exit()
     G = nx.relabel_nodes(G, {node: i for i, node in enumerate(list(G.nodes()))})
     G_mouse = read_graph('data/mouse.edges')
     max_node_label = max(G.nodes()) + 1
