@@ -154,6 +154,8 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name):
             # with open(file_name + '_id2idx{}'.format(count - 1), 'w', encoding='utf-8') as f2:
             #     for node in id2idx:
             #         f2.write('{} {}\n'.format(node, id2idx[node]))
+            if count > 100:
+                break
     file.close()
 
     with open(file_name + "labels_graph", 'w', encoding='utf-8') as file:
