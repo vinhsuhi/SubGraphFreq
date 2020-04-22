@@ -444,9 +444,6 @@ class gSpan(object):
 
     def _is_min(self):
         """
-        đầu tiên tạo graph từ DFScode
-        Sau đó tạo dfs_code_min = (DFSedge(0, 1, ('1', '1', '1')))
-        Sau đó tạo root
         """
         if self._verbose:
             print('is_min: checking {}'.format(self._DFScode))
@@ -551,6 +548,7 @@ class gSpan(object):
 
     def _subgraph_mining(self, projected):
         self._support = self._get_support(projected) # 17
+
         if self._support < self._min_support:
             return
         if not self._is_min():
@@ -558,7 +556,9 @@ class gSpan(object):
         self._report(projected)
 
         num_vertices = self._DFScode.get_num_vertices()
+
         self._DFScode.build_rmpath()
+        
         rmpath = self._DFScode.rmpath
         maxtoc = self._DFScode[rmpath[0]].to
         min_vlb = self._DFScode[0].vevlb[0]

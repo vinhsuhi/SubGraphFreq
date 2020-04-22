@@ -11,6 +11,8 @@ def read_source(path):
                 data_line = line.split()
                 edge_0, edge_1 = int(data_line[1]), int(data_line[2]), int(data_line[3])
                 edges.append([edge_0, edge_1])
+            elif 'v' in line:
+                
     file.close()
 
     return edges

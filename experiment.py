@@ -26,6 +26,7 @@ def parse_args():
     # parser.add_argument('--dim_1', default = 10, type = int)
     # parser.add_argument('--dim_2', default = 10, type = int)
     parser.add_argument('--feat_dim', default=6, type=int)
+    parser.add_argument('--output_dim', default=6, type=int)
     parser.add_argument('--epochs', default=3,   help='Number of epochs to train.', type=int)
     parser.add_argument('--clustering_method', default='DBSCAN', help="choose between DBSCAN and LSH")
     parser.add_argument('--num_adds', default=3, type=int)
@@ -74,8 +75,7 @@ def learn_embedding(features, adj, degree, edges):
     cuda = True
     num_GCN_blocks = 2
     input_dim = features.shape[1]
-    output_dim = 2
-    model = FA_GCN('tanh', num_GCN_blocks, input_dim, output_dim)
+    model = FA_GCN('tanh', num_GCN_blocks, input_dim, args.output_dim)
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
     features = torch.FloatTensor(features)
     # adj = torch.FloatTensor(adj)
@@ -86,13 +86,6 @@ def learn_embedding(features, adj, degree, edges):
 
     num_epochs = args.epochs
 
-    # for epoch in tqdm(range(num_epochs), desc="Training..."):
-    #     optimizer.zero_grad()
-    #     outputs = model.forward(adj, features)
-    #     loss = loss_function(outputs[-1], adj)
-    #     print("loss: {:.4f}".format(loss.data))
-    #     loss.backward()
-    #     optimizer.step()
     batch_size = args.batch_size
 
     optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, model.parameters()), lr=0.01)
@@ -105,30 +98,23 @@ def learn_embedding(features, adj, degree, edges):
         for iter in tqdm(range(n_iters)):  ####### for iter in range(n_iters)
             optimizer.zero_grad()
             batch_edges = torch.LongTensor(edges[iter*batch_size:(iter+1)*batch_size])
-            outputs = model.forward(adj, features)
-            loss = link_pred_loss(batch_edges[:, 0], batch_edges[: ,1], outputs[-1], degree)
+            output = model.forward(adj, features)
+            loss = link_pred_loss(batch_edges[:, 0], batch_edges[: ,1], output, degree)
             loss.backward()
             optimizer.step()
             print("Loss: {:.4f}".format(loss.data))
 
-    embeddings = torch.cat(outputs, dim=1)
-    embeddings = embeddings.detach().cpu().numpy()
+    # embeddings = torch.cat(outputs, dim=1)
+    
+    embeddings = output.detach().cpu().numpy()
     return embeddings
 
 
 def gen_data(path, kara_center, num_adds, labels=[]):
-    # G = read_graph(path)
-    G, label_edges, label_nodes = read_attributed_graph(path)
-    max_feats_label = max(list(label_nodes.values())) 
-    max_edge_feats_label = max(list(label_edges.values()))
+    G, num_nodes_label, num_edges_label = read_attributed_graph(path)
 
-    node_feats = np.array(list(label_nodes.values()))
-
-    # import pdb
-    # pdb.set_trace()
-    G = nx.relabel_nodes(G, {node: i for i, node in enumerate(list(G.nodes()))})
     G_mouse = read_graph('data/mouse.edges')
-    max_node_label = max(G.nodes()) + 1
+    max_node_id  = max(G.nodes()) + 1
 
     # nodes_to_remove = [4, 5, 6, 19, 21, 31, 23, 13, 7 , 15, 22, 23, 25, 28, 3, 29, 17, 31, 32, 1, 3, 24, 8, 9]
     # nodes_to_remove = [23, 25, 28, 3, 29, 17, 31, 32, 1]
@@ -137,114 +123,68 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
 
     # 1
-    num_node1 = 0
+    edge_labels_concat = np.random.randint(0, num_edges_label, 3).tolist()
+    new_node_labels = []
+    new_edge_labels = []
     center1s = []
-    label_edges_this = []
     for i in range(num_adds):
-
-        edges, center, mapping, num_node1 = create_small_graph(max_node_label, kara_center, nodes_to_remove)
+        edges, center, mapping, nodes1 = create_small_graph(max_node_id , kara_center, nodes_to_remove)
+        if i == 0:
+            new_node_labels = np.random.randint(0, num_nodes_label, len(nodes1)).tolist()
+            new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
         center1s.append(center)
+        edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
+        G.add_nodes_from([(nodes1[k], {'label': new_node_labels[k]}) for k in range(len(nodes1))])
         G.add_edges_from(edges)
-        max_node_label = max(G.nodes()) + 1
-
-        nodes_to_concat = np.array([mapping[ele] for ele in [26]]) + max_node_label
+        nodes_to_concat = np.array([mapping[ele] for ele in [26]]) + max_node_id 
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
-        G.add_edges_from(pseudo_edges)
-        if i == 0:
-            for i in range(len(edges)):
-                edge = edges[i]
-                label =  np.random.randint(0, max_edge_feats_label, 1)[0]
-                label_edges[(edge[0], edge[1])] = label
-                label_edges_this.append(label)
-            for j in range(len(pseudo_edges)):
-                edge = pseudo_edges[j]
-                label =  np.random.randint(0, max_edge_feats_label, 1)[0]
-                label_edges[(edge[0], edge[1])] = label
-                label_edges_this.append(label)
-        else:
-            for i in range(label_edges_this):
-                edge = None
-                if i < len(edges):
-                    edge = edges[i]
-                else:
-                    edge = pseudo_edges[i - len(edges)]
-                label_edges[(edge[0], edge[1])] = label_edges_this[i]
+        G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
+        max_node_id  = max(G.nodes) + 1
         
-
-    # features_sub = np.zeros((num_node1s, max_feats_label))
-    # features_sub[:, np.random.randint(0, max_feats_label, num_node1)] = 1
-    node_feats_sub1 = np.random.randint(0, max_feats_label, num_node1).tolist()
-    node_feats_sub1 = node_feats_sub1 * num_adds
-
-    num_node2s = 0
+    edge_labels_concat = np.random.randint(0, num_edges_label, 3).tolist()
+    new_node_labels = []
+    new_edge_labels = []
     center2s = []
-    label_edges_this = []
     for i in range(num_adds):
-        edges, center, mapping, num_node2 = create_small_graph2(G_mouse, max_node_label, 9)
-        center2s.append(center)
-        G.add_edges_from(edges)
-        max_node_label = max(G.nodes()) + 1
-
-        nodes_to_concat = np.array([mapping[ele] for ele in [1]]) + max_node_label
-        pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
-        G.add_edges_from(pseudo_edges)
-        num_node2s += num_node2
-
+        edges, center, mapping, nodes2 = create_small_graph2(G_mouse, max_node_id , 9)
         if i == 0:
-            for i in range(len(edges)):
-                edge = edges[i]
-                label =  np.random.randint(0, max_edge_feats_label, 1)[0]
-                label_edges[(edge[0], edge[1])] = label
-                label_edges_this.append(label)
-            for j in range(len(pseudo_edges)):
-                edge = pseudo_edges[j]
-                label =  np.random.randint(0, max_edge_feats_label, 1)[0]
-                label_edges[(edge[0], edge[1])] = label
-                label_edges_this.append(label)
-        else:
-            for i in range(label_edges_this):
-                edge = None
-                if i < len(edges):
-                    edge = edges[i]
-                else:
-                    edge = pseudo_edges[i - len(edges)]
-                label_edges[(edge[0], edge[1])] = label_edges_this[i]
-        
-
-    node_feats_sub2 = np.random.randint(0, max_feats_label, num_node2).tolist()
-    node_feats_sub2 = node_feats_sub2 * num_adds
-
-
-    node_feats = np.concatenate((node_feats, node_feats_sub1, node_feats_sub2))
+            new_node_labels = np.random.randint(0, num_nodes_label, len(nodes1)).tolist()
+            new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
+        center2s.append(center)
+        edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
+        G.add_nodes_from([(nodes2[k], {'label': new_node_labels[k]}) for k in range(len(nodes2))])
+        G.add_edges_from(edges)
+        nodes_to_concat = np.array([mapping[ele] for ele in [1]]) + max_node_id 
+        pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
+        G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
+        max_node_id  = max(G.nodes()) + 1
 
     print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
-    return G, center1s, center2s, node_feats, label_edges
+    return G, center1s, center2s, num_nodes_label, num_edges_label
 
 
-def create_data_for_GCN(G, node_feats):
-    
+def create_data_for_GCN(G, num_nodes_label):
     num_nodes = len(G.nodes)
     degree = np.array([G.degree(node) for node in G.nodes])
     edges = np.array(list(G.edges))
-    if np.min(node_feats) <= 0:
-        print("Be care full, min node label should be larger than 0")
     # features = np.ones((num_nodes, 2))
-    features = np.zeros((num_nodes, np.max(node_feats)))
-    features[:, node_feats - 1] = 1
-
+    features = np.zeros((num_nodes, num_nodes_label))
+    for node in G.nodes:
+        features[node][G.nodes[node]['label']] = 1
     indexs1 = torch.LongTensor(np.array(list(G.edges)).T)
     indexs2 = torch.LongTensor(np.array([(ele[1], ele[0]) for ele in list(G.edges)]).T)
     indexs3 = torch.LongTensor(np.array([(node, node) for node in range(num_nodes)]).T)
     indexs = torch.cat((indexs1, indexs2, indexs3), dim=1)
     values = torch.FloatTensor(np.ones(indexs.shape[1]))
     adj = torch.sparse.FloatTensor(indexs, values, torch.Size([num_nodes, num_nodes]))
-    # adj = nx.to_scipy_sparse_matrix(G)
-    # adj = create_adj(G.edges(), num_nodes)d77
     return features, adj, degree, edges
 
 
-def create_data_for_Graphsage(G, args):
+def create_data_for_Graphsage(G, num_nodes_label):
     num_nodes = len(G.nodes())
+    features = np.zeros((num_nodes, num_nodes_label))
+    for node in G.nodes:
+        features[node][G.nodes[node]['label']] = 1
     graphsage_G = nx.Graph()
     graphsage_G.add_edges_from([(str(edge[0]),str(edge[1])) for edge in list(G.edges)])
     features = np.ones((num_nodes,args.feat_dim), dtype = float) 
@@ -283,7 +223,6 @@ def clustering(embeddings, method, ep=None):
     #     labels = dbscan.dbscan(embeddings.T, eps, min_points)
         
     #     import pdb
-    #     pdb.set_trace()
         
     elif method == "LSH":
         model = LSHash(10, 32)
@@ -309,21 +248,18 @@ if __name__ == "__main__":
     kara_center = 2
     # path = 'data/bio-DM-LC.edges'
 
-    G, center1s, center2s, node_feats, edge_feats = gen_data(args.large_graph_path, kara_center, args.num_adds)
+    G, center1s, center2s, num_nodes_label, num_edges_label = gen_data(args.large_graph_path, kara_center, args.num_adds)
 
     print("Number of nodes: {}".format(len(G.nodes)))
     print("Number of edges: {}".format(len(G.edges)))
-    print("Number of node labels: {}".format(len(edge_feats)))
-    print("Number of edge labels: {}".format(len(edge_feats)))
-    import pdb
-    pdb.set_trace()
+    # import pdb
 
     if args.load_embs:
         embeddings2 = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
         embeddings = F.normalize(torch.FloatTensor(embeddings2)).detach().cpu().numpy()
     else:
         if args.model == "GCN":
-            features, adj, degree, edges = create_data_for_GCN(G, node_feats)
+            features, adj, degree, edges = create_data_for_GCN(G, num_nodes_label)
             embeddings = learn_embedding(features, adj, degree, edges)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, args)
@@ -343,9 +279,10 @@ if __name__ == "__main__":
         # save_visualize_data(embeddings2, labels, args.clustering_method, G)
 
         st_evaluate_time = time.time()
-        success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name), node_feats, edge_feats)
 
-        success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name), node_feats, edge_feats)
+        success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
+
+        success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
     print("Evaluate time: {:.4f}".format(time.time() - st_evaluate_time))
 
     print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))

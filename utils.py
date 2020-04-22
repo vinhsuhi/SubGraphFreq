@@ -21,8 +21,8 @@ def create_small_graph(max_node_label, kara_center=2, nodes_to_remove=[]):
     edges = karate_graph.edges()
     edges = np.array(edges)
     edges += max_node_label
-    num_nodes = len(karate_graph.nodes)
-    return edges, center, mapping, num_nodes
+    nodes = np.array(list(karate_graph.nodes)) + max_node_label
+    return edges, center, mapping, nodes.tolist()
 
 
 def create_small_graph2(graph, max_node_label, center):
@@ -32,8 +32,8 @@ def create_small_graph2(graph, max_node_label, center):
     edges = graph.edges()
     edges = np.array(edges)
     edges += max_node_label
-    num_nodes = len(graph.nodes)
-    return edges, center, mapping, num_nodes
+    nodes = np.array(list(graph.nodes)) + max_node_label
+    return edges, center, mapping, nodes.tolist()
 
 
 
@@ -52,24 +52,41 @@ def read_graph(path):
 
 def read_attributed_graph(path):
     nodes = []
-    label_nodes = {}
-    label_edges = {}
     edges = []
+    node_feats = set()
+    edge_feats = set()
+    # max_node_feat = 0
+    # max_edge_feat = 0
     with open(path, 'r', encoding='utf-8') as file:
         for line in file:
             data_line = line.split()
             if 'v' in line:
-                nodes.append(int(data_line[1]))
-                label_nodes[int(data_line[1])] = int(data_line[2])
+                nodes.append((int(data_line[1]), {'label': int(data_line[2])}))
+                node_feats.add(int(data_line[2]))
             elif 'e' in line:
-                edges.append((int(data_line[1]), int(data_line[2])))
-                label_edges[(int(data_line[1]), int(data_line[2]))] = int(data_line[3])
-            
+                edges.append((int(data_line[1]), int(data_line[2]), {'label': int(data_line[3])}))
+                edge_feats.add(int(data_line[3]))
+    
+    node_feats = list(node_feats)
+    edge_feats = list(edge_feats)
+
+    new_node_feats = {feat: i for i, feat in enumerate(node_feats)}
+    new_edge_feats = {feat: i for i, feat in enumerate(edge_feats)}
+
     G = nx.Graph() 
     G.add_nodes_from(nodes)
     G.add_edges_from(edges)
-    # atts = np.array(atts)
-    return G, label_edges, label_nodes
+    for node in G.nodes:
+        G.nodes[node]['label'] = new_node_feats[G.nodes[node]['label']]
+    
+    for edge in G.edges:
+        G.edges[edge]['label'] = new_edge_feats[G.edges[edge]['label']]
+    
+    num_node_labels = len(new_node_feats)
+    num_edge_labels = len(new_edge_feats)
+
+    nx.relabel_nodes(G, {node: i for i, node in enumerate(G.nodes)})
+    return G, num_node_labels, num_edge_labels
         
 
 
@@ -85,13 +102,12 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     average_deg = 3
     pseudo_edges = []
     for node in nodes_to_concat:
-        if np.random.rand() < prob_each:
-            to_cat = np.random.choice(ori_nodes, 3)
-            pseudo_edges += [[node, ele] for ele in to_cat]
+        to_cat = np.random.choice(ori_nodes, 3)
+        pseudo_edges += [[node, ele] for ele in to_cat]
     return pseudo_edges
 
 
-def evaluate(embeddings, centers, labels, Graph, file_name, node_feats, edge_feats):
+def evaluate(embeddings, centers, labels, Graph, file_name):
     print("-"*100)
     print(centers)
     print("CLUTERING RESULTs")
@@ -104,12 +120,12 @@ def evaluate(embeddings, centers, labels, Graph, file_name, node_feats, edge_fea
     else:
         label = labels[centers[0]]
         points_in_label = [index for index in range(len(labels)) if labels[index] == label]
-        results = save_subgraph(Graph, points_in_label, centers, file_name, node_feats, edge_feats)
+        results = save_subgraph(Graph, points_in_label, centers, file_name)
     return 1
 
 
 
-def save_subgraph(Graph, points_in_label, true_labels, file_name, node_feats, edge_feats):
+def save_subgraph(Graph, points_in_label, true_labels, file_name):
     # node_feats += 1
     print(true_labels)
     subgraphs = {}
@@ -129,12 +145,12 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, node_feats, ed
             id2idx = {node: i for i, node in enumerate(list(value.nodes()))}
             for node in id2idx:
                 if node == key:
-                    file.write('v {} {}\n'.format(id2idx[node], node_feats[node]))
+                    file.write('v {} {}\n'.format(id2idx[node], Graph.nodes[node]['label']))
                 else:
-                    file.write('v {} {}\n'.format(id2idx[node], node_feats[node]))
+                    file.write('v {} {}\n'.format(id2idx[node], Graph.nodes[node]['label']))
                 
             for edge in value.edges():
-                file.write('e {} {} {}\n'.format(id2idx[edge[0]], id2idx[edge[1]], edge_feats((edge[0], edge[1]))))
+                file.write('e {} {} {}\n'.format(id2idx[edge[0]], id2idx[edge[1]], Graph.edges[(edge[0], edge[1])]['label']))
             # with open(file_name + '_id2idx{}'.format(count - 1), 'w', encoding='utf-8') as f2:
             #     for node in id2idx:
             #         f2.write('{} {}\n'.format(node, id2idx[node]))
