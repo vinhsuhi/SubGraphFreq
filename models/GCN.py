@@ -104,7 +104,7 @@ class FA_GCN(nn.Module):
         """
         
         emb_input = input.clone()
-        outputs = []
+        outputs = [input]
 
         for i in range(self.num_GCN_blocks):
             GCN_output_i = self.GCNs[i](emb_input, A_hat)
