@@ -109,12 +109,17 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
 
 def evaluate(embeddings, centers, labels, Graph, file_name):
     print("-"*100)
-    print(centers)
-    print("CLUTERING RESULTs")
-    print(Counter(labels))
+    labels_counter = Counter(labels)
+    print("CLUTERING RESULTs, number of clusters: {}".format(len(labels_counter)))
+    print(labels_counter)
+    
     labels_center = [labels[index] for index in centers]
-    print("labels of center nodes: ")
-    print(Counter(labels_center))
+    labels_center_count = Counter(labels_center)
+    print("labels of center nodes: {}".format(labels_center_count))
+    for key, value in labels_center_count.items():
+        print("Cluster {} has {} centers over {} nodes".format(key, value, labels_counter[key]))
+
+    # print(Counter(labels_center))
     if len(Counter(labels_center)) > 1:
         pass
     else:

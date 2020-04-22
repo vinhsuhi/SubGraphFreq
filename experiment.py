@@ -254,13 +254,15 @@ if __name__ == "__main__":
     print("Number of edges: {}".format(len(G.edges)))
     # import pdb
 
-    if args.load_embs:
-        embeddings2 = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
-        embeddings = F.normalize(torch.FloatTensor(embeddings2)).detach().cpu().numpy()
+    if args.load_embs or os.path.exists('emb.npy'):
+        # embeddings2 = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
+        # embeddings = F.normalize(torch.FloatTensor(embeddings2)).detach().cpu().numpy()
+        embeddings = np.load('emb.npy')
     else:
         if args.model == "GCN":
             features, adj, degree, edges = create_data_for_GCN(G, num_nodes_label)
             embeddings = learn_embedding(features, adj, degree, edges)
+            np.save('emb.npy', embeddings)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, args)
             st_emb_time = time.time()
