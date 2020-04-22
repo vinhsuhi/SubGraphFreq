@@ -123,7 +123,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
 
     # 1
-    edge_labels_concat = np.random.randint(0, num_edges_label, 3).tolist()
+    edge_labels_concat = np.random.randint(0, num_edges_label, 9).tolist()
     new_node_labels = []
     new_edge_labels = []
     center1s = []
@@ -136,7 +136,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
         edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
         G.add_nodes_from([(nodes1[k], {'label': new_node_labels[k]}) for k in range(len(nodes1))])
         G.add_edges_from(edges)
-        nodes_to_concat = np.array([mapping[ele] for ele in [26]]) + max_node_id 
+        nodes_to_concat = np.array([mapping[ele] for ele in [26, 19, 21]]) + max_node_id 
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
         G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
         max_node_id  = max(G.nodes) + 1
@@ -145,19 +145,19 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     new_node_labels = []
     new_edge_labels = []
     center2s = []
-    for i in range(num_adds):
-        edges, center, mapping, nodes2 = create_small_graph2(G_mouse, max_node_id , 9)
-        if i == 0:
-            new_node_labels = np.random.randint(0, num_nodes_label, len(nodes1)).tolist()
-            new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
-        center2s.append(center)
-        edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
-        G.add_nodes_from([(nodes2[k], {'label': new_node_labels[k]}) for k in range(len(nodes2))])
-        G.add_edges_from(edges)
-        nodes_to_concat = np.array([mapping[ele] for ele in [1]]) + max_node_id 
-        pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
-        G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
-        max_node_id  = max(G.nodes()) + 1
+    # for i in range(num_adds):
+    #     edges, center, mapping, nodes2 = create_small_graph2(G_mouse, max_node_id , 9)
+    #     if i == 0:
+    #         new_node_labels = np.random.randint(0, num_nodes_label, len(nodes1)).tolist()
+    #         new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
+    #     center2s.append(center)
+    #     edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
+    #     G.add_nodes_from([(nodes2[k], {'label': new_node_labels[k]}) for k in range(len(nodes2))])
+    #     G.add_edges_from(edges)
+    #     nodes_to_concat = np.array([mapping[ele] for ele in [1]]) + max_node_id 
+    #     pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
+    #     G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
+    #     max_node_id  = max(G.nodes()) + 1
 
     print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
     return G, center1s, center2s, num_nodes_label, num_edges_label
@@ -286,6 +286,8 @@ if __name__ == "__main__":
         success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
         if not success:
             continue
+        else:
+            break
         # print("")
         print("Eval for centers 2")
         success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
