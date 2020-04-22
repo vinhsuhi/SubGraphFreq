@@ -92,6 +92,7 @@ class FA_GCN(nn.Module):
             self.GCNs.append(GCN(activate_function, input_dim, output_dim))
             input_dim = self.GCNs[-1].output_dim
         self.GCNs = nn.ModuleList(self.GCNs)
+        self.fully = nn.Linear(self.input_dim + output_dim * num_GCN_blocks, output_dim, bias=False)
         init_weight(self.modules(), activate_function)
 
 
@@ -104,8 +105,11 @@ class FA_GCN(nn.Module):
         
         emb_input = input.clone()
         outputs = []
+
         for i in range(self.num_GCN_blocks):
             GCN_output_i = self.GCNs[i](emb_input, A_hat)
             outputs.append(GCN_output_i)
             emb_input = GCN_output_i
-        return outputs
+        cat_output = torch.cat(outputs, dim=1)
+        output = self.fully(cat_output)
+        return output
