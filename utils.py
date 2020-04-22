@@ -114,20 +114,16 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
     labels_center = [labels[index] for index in centers]
     labels_center_count = Counter(labels_center)
     if len(labels_center_count) > 1:
-        return
+        return 0
     print("clusering results, number of clusters: {}".format(len(labels_counter)))
     print(labels_counter)
     print("labels of center nodes: {}".format(labels_center_count))
     for key, value in labels_center_count.items():
         print("Cluster {} has {} centers over {} nodes".format(key, value, labels_counter[key]))
 
-    # print(Counter(labels_center))
-    if len(Counter(labels_center)) > 1:
-        pass
-    else:
-        label = labels[centers[0]]
-        points_in_label = [index for index in range(len(labels)) if labels[index] == label]
-        results = save_subgraph(Graph, points_in_label, centers, file_name)
+    label = labels[centers[0]]
+    points_in_label = [index for index in range(len(labels)) if labels[index] == label]
+    results = save_subgraph(Graph, points_in_label, centers, file_name)
     return 1
 
 
