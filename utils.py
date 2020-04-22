@@ -123,6 +123,9 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
 
     label = labels[centers[0]]
     points_in_label = [index for index in range(len(labels)) if labels[index] == label]
+    if labels_counter[centers[0]] > 5000:
+        print("too large")
+        return 0
     results = save_subgraph(Graph, points_in_label, centers, file_name)
     return 1
 
@@ -130,7 +133,6 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
 
 def save_subgraph(Graph, points_in_label, true_labels, file_name):
     # node_feats += 1
-    print(true_labels)
     subgraphs = {}
 
     for start_node in points_in_label:

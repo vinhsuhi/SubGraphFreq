@@ -272,7 +272,7 @@ if __name__ == "__main__":
     print("Clustering...")
     st_clustering_time = time.time()
     # for ep in [0.001, 0.0001, 0.00001, 0.000001, 0.0000001]:
-    for ep in [5e-2, 1e-2, 5e-3, 1e-3, 5e-4, 1e-4]:
+    for ep in [1e-2, 5e-3, 1e-3, 5e-4, 1e-4]:
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
         if len(Counter(labels)) < 3:
