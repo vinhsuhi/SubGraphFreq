@@ -272,7 +272,7 @@ if __name__ == "__main__":
     print("Clustering...")
     st_clustering_time = time.time()
     # for ep in [0.001, 0.0001, 0.00001, 0.000001, 0.0000001]:
-    for ep in [1e-2, 5e-3, 1e-3, 5e-4, 1e-4]:
+    for ep in [1e-3, 5e-4, 1e-4]:
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
         if len(Counter(labels)) < 3:
@@ -294,9 +294,21 @@ if __name__ == "__main__":
         if success:
             break
 
-
+    def save_graph_to_file(G, path):
+        with open(path, 'w', encoding='utf-8') as file:
+            file.write('t # 1\n')
+            for node in G.nodes:
+                file.write('v {} {}\n'.format(node, G.nodes[node]['label']))
+            for edge in G.edges:
+                file.write('e {} {} {}\n'.format(edge[0], edge[1], G.edges[(edge[0], edge[1])]['label']))
+        file.close()
+    save_graph_to_file(G, 'mico2.lg')
+    with open('mic2_centers.lg', 'w', encoding='utf-8') as file:
+        for node in center1s:
+            file.write('{}\n'.format(node))
+    file.close()
     print("Evaluate time: {:.4f}".format(time.time() - st_evaluate_time))
 
-    print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))
+    #print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))
 
 

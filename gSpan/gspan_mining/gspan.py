@@ -333,8 +333,6 @@ class gSpan(object):
                     )
         
         for vevlb, projected in root.items():
-            if vevlb == ('2', '1', '2'):
-                continue
             # print(projected.gid)
             self._DFScode.append(DFSedge(0, 1, vevlb))
             self._subgraph_mining(projected)
