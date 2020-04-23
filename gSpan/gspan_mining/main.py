@@ -21,6 +21,18 @@ def main(FLAGS=None):
         print('{} does not exist.'.format(FLAGS.database_file_name))
         sys.exit()
 
+    if not os.path.exists(FLAGS.label):
+        print('{} does not exist.'.format(FLAGS.label))
+        sys.exit()
+    else:
+        center_labels = []
+        with open(FLAGS.label, 'r', encoding='utf-8') as file:
+            for line in file:
+                data_line = line.split()
+                if len(data_line >0):
+                    center_labels.append(data_line[0])
+        
+
     gs = gSpan(
         database_file_name=FLAGS.database_file_name,
         min_support=FLAGS.min_support,
@@ -33,7 +45,7 @@ def main(FLAGS=None):
         where=FLAGS.where
     )
 
-    gs.run()
+    gs.run(center_labels)
     gs.time_stats()
     return gs
 

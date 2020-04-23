@@ -316,8 +316,9 @@ class gSpan(object):
             self._counter = itertools.count()
 
     @record_timestamp
-    def run(self):
+    def run(self, center_labels=None):
         """Run the gSpan algorithm."""
+        print("Center_labels: {}".format(center_labels))
         self._read_graphs() # read from files, and create a list called graphs contains Graph
         # self._generate_1edge_frequent_subgraphs()
         if self._max_num_vertices < 2:
@@ -331,13 +332,18 @@ class gSpan(object):
                     root[(v.vlb, e.elb, g.vertices[e.to].vlb)].append(
                         PDFS(gid, e, None)
                     )
-        
+        count_wrong = 0
         for vevlb, projected in root.items():
             # print(projected.gid)
+            if center_labels is not None:
+                if vevlb[0] not in center_labels:
+                    count_wrong += 1
+                    continue
             self._DFScode.append(DFSedge(0, 1, vevlb))
             self._subgraph_mining(projected)
             self._DFScode.pop()
     
+        print("Skip {} redundant search".format(count_wrong))
     
 
 
