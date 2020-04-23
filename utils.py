@@ -107,7 +107,7 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     return pseudo_edges
 
 
-def evaluate(embeddings, centers, cluster_labels, Graph, file_name):
+def evaluate(embeddings, centers, labels, Graph, file_name):
     Threshold = 80
     print("-"*100)
     

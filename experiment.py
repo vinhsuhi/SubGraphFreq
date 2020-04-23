@@ -8,7 +8,6 @@ import torch.nn.functional as F
 from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2, read_attributed_graph
 from models.graphsage.model import run_graph
 import argparse
-from lshash import LSHash
 from sklearn.cluster import DBSCAN
 import os
 from collections import Counter
@@ -226,18 +225,7 @@ def clustering(embeddings, method, ep=None):
     #     import pdb
         
     elif method == "LSH":
-        model = LSHash(10, 32)
-        for i in range(len(embeddings)):
-            model.index(embeddings[i])
-            hash_0_dict = model.hash_tables[0].storage
-            key_to_index = {}
-            for i, key in enumerate(hash_0_dict):
-                key_to_index[key] = i
-            labels = []
-        for i in range(len(embeddings)):
-            key = model.query(embeddings[i])[1][0]
-            labels.append(key_to_index[key])
-
+        return
     return labels
 
 
@@ -255,7 +243,7 @@ if __name__ == "__main__":
     print("Number of edges: {}".format(len(G.edges)))
     # import pdb
 
-    if args.load_embs or os.path.exists('emb.npy'):
+    if args.load_embs and os.path.exists('emb.npy'):
         # embeddings2 = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
         # embeddings = F.normalize(torch.FloatTensor(embeddings2)).detach().cpu().numpy()
         embeddings = np.load('emb.npy')
