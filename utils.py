@@ -107,8 +107,10 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     return pseudo_edges
 
 
-def evaluate(embeddings, centers, labels, Graph, file_name):
+def evaluate(embeddings, centers, cluster_labels, Graph, file_name):
+    Threshold = 80
     print("-"*100)
+    
     labels_counter = Counter(labels)
     
     labels_center = [labels[index] for index in centers]
@@ -123,18 +125,24 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
 
     label = labels[centers[0]]
     points_in_label = [index for index in range(len(labels)) if labels[index] == label]
+    count_att_labels = Counter([Graph[node]['label'] for node in points_in_label])
+    points_in_label = [node for node in points_in_label if count_att_labels[Graph[node]['label']] > Threshold]
+    att_label_set = set([Graph[node]['label'] for node in points_in_label])
+    # count_att_labels = Counter([Graph[node]['label'] for node in points_in_label])
+    # num_unique_att = len(count_att_labels)
     if labels_counter[labels[centers[0]]] > 5000:
         print("too large")
         return 0
-    results = save_subgraph(Graph, points_in_label, centers, file_name)
+    
+    results = save_subgraph(Graph, points_in_label, centers, file_name, list(att_label_set))
     return 1
 
 
 
-def save_subgraph(Graph, points_in_label, true_labels, file_name):
+def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set):
     # node_feats += 1
     subgraphs = {}
-
+    att_label_dict = {ele: i for i, ele in enumerate(att_label_set)}
     for start_node in points_in_label:
         subgraph_depth = get_subgraph(Graph, start_node,2)
         subgraphs[start_node] = subgraph_depth
@@ -149,21 +157,28 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name):
             count += 1
             id2idx = {node: i for i, node in enumerate(list(value.nodes()))}
             for node in id2idx:
-                if node == key:
-                    file.write('v {} {}\n'.format(id2idx[node], Graph.nodes[node]['label']))
+                the_start_label = Graph.nodes[node]['label']
+                if the_start_label not in att_label_dict:
+                    the_start_label += len(att_label_dict)
                 else:
-                    file.write('v {} {}\n'.format(id2idx[node], Graph.nodes[node]['label']))
+                    the_start_label = att_label_dict[the_start_label]
+                if node == key:
+                    file.write('v {} {}\n'.format(id2idx[node], the_start_label))
+                else:
+                    file.write('v {} {}\n'.format(id2idx[node], the_start_label))
                 
             for edge in value.edges():
                 file.write('e {} {} {}\n'.format(id2idx[edge[0]], id2idx[edge[1]], Graph.edges[(edge[0], edge[1])]['label']))
-            # with open(file_name + '_id2idx{}'.format(count - 1), 'w', encoding='utf-8') as f2:
-            #     for node in id2idx:
-            #         f2.write('{} {}\n'.format(node, id2idx[node]))
     file.close()
 
     with open(file_name + "labels_graph", 'w', encoding='utf-8') as file:
         for gt in groundtruth:
             file.write('{}\t'.format(gt))
+    file.close()
+    with open(file_name + "att_label_center", 'w', encoding='utf-8') as file:
+        for label in att_label_set:
+            file.write('{}\n'.format(label))
+    file.close()
     # with open(file_name + "true_label", 'w', encoding='utf-8') as file:
     #     for label in true_labels:
     #         file.write('{}\n'.format(label))

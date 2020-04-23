@@ -14,6 +14,7 @@ import os
 from collections import Counter
 import time
 from models.graphsage.prediction import BipartiteEdgePredLayer
+np.random.seed(1)
 
 
 def parse_args():

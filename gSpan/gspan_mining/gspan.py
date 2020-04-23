@@ -337,6 +337,9 @@ class gSpan(object):
             self._DFScode.append(DFSedge(0, 1, vevlb))
             self._subgraph_mining(projected)
             self._DFScode.pop()
+    
+    
+
 
     def _get_support(self, projected):
         gids = set([pdfs.gid for pdfs in projected])
@@ -357,6 +360,7 @@ class gSpan(object):
                                    is_undirected=self._is_undirected)
 
         # if self._support <= 15:
+            # continue
         # print("This graph ID: {}".format(projected.gid))
         display_str = g.display()
         print('\nSupport: {}'.format(self._support))

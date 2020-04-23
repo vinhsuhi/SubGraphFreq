@@ -68,3 +68,11 @@ parser.add_argument(
     help='bool, output where one frequent subgraph appears in database, '
          'default off'
 )
+# vinhsuhi
+parser.add_argument(
+    '-h', '--label',
+    type=str,
+    default="",
+    help='bool, output where one frequent subgraph appears in database, '
+         'default off'
+)
