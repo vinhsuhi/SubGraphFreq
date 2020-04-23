@@ -145,6 +145,8 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set)
     att_label_dict = {ele: i for i, ele in enumerate(att_label_set)}
     for start_node in points_in_label:
         subgraph_depth = get_subgraph(Graph, start_node,2)
+        if len(subgraph_depth.nodes) > 300:
+            continue
         subgraphs[start_node] = subgraph_depth
 
     count = 0
