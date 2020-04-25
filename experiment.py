@@ -13,7 +13,6 @@ import os
 from collections import Counter
 import time
 from models.graphsage.prediction import BipartiteEdgePredLayer
-np.random.seed(1)
 
 
 def parse_args():
@@ -76,7 +75,6 @@ def learn_embedding(features, adj, degree, edges):
     num_GCN_blocks = 2
     input_dim = features.shape[1]
     model = FA_GCN('tanh', num_GCN_blocks, input_dim, args.output_dim)
-    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
     features = torch.FloatTensor(features)
     # adj = torch.FloatTensor(adj)
     if cuda:
@@ -88,7 +86,7 @@ def learn_embedding(features, adj, degree, edges):
 
     batch_size = args.batch_size
 
-    optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, model.parameters()), lr=0.01)
+    optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, model.parameters()), lr=0.1)
 
     n_iters = len(edges)//batch_size
      
@@ -261,10 +259,11 @@ if __name__ == "__main__":
     print("Clustering...")
     st_clustering_time = time.time()
     # for ep in [0.001, 0.0001, 0.00001, 0.000001, 0.0000001]:
-    for ep in [1e-3, 5e-4, 1e-4]:
+    for ep in [0.0085, 0.0075, 8e-3, 7e-3, 6e-3, 4e-3,  1e-3, 5e-4, 1e-4]: # 4e-3 ok
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
         if len(Counter(labels)) < 3:
+            print("number of cluster smaller than 3")
             continue
         print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
         # save_visualize_data(embeddings2, labels, args.clustering_method, G)

@@ -116,6 +116,7 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
     labels_center = [labels[index] for index in centers]
     labels_center_count = Counter(labels_center)
     if len(labels_center_count) > 1:
+        print(labels_center_count)
         return 0
     print("clusering results, number of clusters: {}".format(len(labels_counter)))
     print(labels_counter)
@@ -125,12 +126,12 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
 
     label = labels[centers[0]]
     points_in_label = [index for index in range(len(labels)) if labels[index] == label]
-    count_att_labels = Counter([Graph[node]['label'] for node in points_in_label])
-    points_in_label = [node for node in points_in_label if count_att_labels[Graph[node]['label']] > Threshold]
-    att_label_set = set([Graph[node]['label'] for node in points_in_label])
+    count_att_labels = Counter([Graph.nodes[node]['label'] for node in points_in_label])
+    points_in_label = [node for node in points_in_label if count_att_labels[Graph.nodes[node]['label']] > Threshold]
+    att_label_set = set([Graph.nodes[node]['label'] for node in points_in_label])
     # count_att_labels = Counter([Graph[node]['label'] for node in points_in_label])
     # num_unique_att = len(count_att_labels)
-    if labels_counter[labels[centers[0]]] > 5000:
+    if labels_counter[labels[centers[0]]] > 1000:
         print("too large")
         return 0
     
@@ -171,6 +172,8 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set)
                 
             for edge in value.edges():
                 file.write('e {} {} {}\n'.format(id2idx[edge[0]], id2idx[edge[1]], Graph.edges[(edge[0], edge[1])]['label']))
+            if count == 100:
+                break
     file.close()
 
     with open(file_name + "labels_graph", 'w', encoding='utf-8') as file:
