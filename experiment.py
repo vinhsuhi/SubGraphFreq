@@ -265,7 +265,7 @@ if __name__ == "__main__":
     print("Clustering...")
     st_clustering_time = time.time()
     ep = 1e-6
-    while True
+    while True:
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
         print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
