@@ -257,20 +257,27 @@ if __name__ == "__main__":
     
     print("Clustering...")
     st_clustering_time = time.time()
-    ep = 1e-6
+    ep = 1e-7
     while True:
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
         print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
+
+        # check number of clusters
+        if len(Counter(labels)) < 3:
+            print("number of cluster smaller than 3")
+            print("exitting...")
+            exit()
+
+        # check label of centers, if it the same, ok. But... increase epsilon
         labels_center = [labels[index] for index in center1s]
         print("Labels of centers: {}".format(labels_center))
         if len(Counter(labels_center)) > 1:
             print("epsilon is too small")
             ep *= 2
-        if len(Counter(labels)) < 3:
-            print("number of cluster smaller than 3")
-            break
-        # save_visualize_data(embeddings2, labels, args.clustering_method, G)
+            continue
+        
+        # if number of nodes in center's cluster is too large, then decrease epsilon
         success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
         if not success:
             ep /= 1.5
@@ -296,7 +303,7 @@ if __name__ == "__main__":
         for node in center1s:
             file.write('{}\n'.format(node))
     file.close()
-    print("Evaluate time: {:.4f}".format(time.time() - st_evaluate_time))
+    # print("Evaluate time: {:.4f}".format(time.time() - st_evaluate_time))
 
     #print("Simi between center1 and center11: {:.4f}".format(np.sum(embeddings[center1s[0]] * embeddings[center2s[0]])))
 
