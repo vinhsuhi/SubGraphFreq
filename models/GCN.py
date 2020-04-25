@@ -112,4 +112,5 @@ class FA_GCN(nn.Module):
             emb_input = GCN_output_i
         cat_output = torch.cat(outputs, dim=1)
         output = self.fully(cat_output)
+        output = F.normalize(output)
         return output

@@ -86,7 +86,7 @@ def learn_embedding(features, adj, degree, edges):
 
     batch_size = args.batch_size
 
-    optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, model.parameters()), lr=0.1)
+    optimizer = torch.optim.Adam(filter(lambda p : p.requires_grad, model.parameters()), lr=0.01)
 
     n_iters = len(edges)//batch_size
      
@@ -185,8 +185,6 @@ def create_data_for_GCN(G, num_nodes_label):
         values.append(1/(np.sqrt(G.degree(int(indexs3[0][i])) + 1) * np.sqrt(G.degree(int(indexs3[1][i])) + 1))) 
     
     values = torch.FloatTensor(np.array(values))
-    import pdb
-    pdb.set_trace()
     adj = torch.sparse.FloatTensor(indexs, values, torch.Size([num_nodes, num_nodes]))
     return features, adj, degree, edges
 
@@ -221,14 +219,9 @@ def save_visualize_data(embeddings, labels, method, G):
 
 def clustering(embeddings, method, ep=None):
     if method == "DBSCAN":
-        db = DBSCAN(eps=ep, min_samples=14, metric='cosine').fit(embeddings)
+        db = DBSCAN(eps=ep, min_samples=50, metric='cosine').fit(embeddings)
         labels = db.labels_
         labels = [ele + 1 for ele in labels]
-        cter = Counter(labels)
-    # if method == "DBSCAN":
-    #     labels = dbscan.dbscan(embeddings.T, eps, min_points)
-        
-    #     import pdb
         
     elif method == "LSH":
         return
@@ -288,7 +281,7 @@ if __name__ == "__main__":
 
     import os
     if not os.path.exists('output_graphs'):
-        os.mkdir('ouput_graphs')
+        os.mkdir('output_graphs')
 
     def save_graph_to_file(G, path):
         with open(path, 'w', encoding='utf-8') as file:
