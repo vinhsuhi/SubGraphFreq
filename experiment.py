@@ -109,6 +109,8 @@ def learn_embedding(features, adj, degree, edges):
 
 
 def gen_data(path, kara_center, num_adds, labels=[]):
+    # Nodes label is >= 1
+    # Edges label is >= 0
     G, num_nodes_label, num_edges_label = read_attributed_graph(path)
     max_node_id  = max(G.nodes()) + 1
 
@@ -139,9 +141,6 @@ def gen_data(path, kara_center, num_adds, labels=[]):
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
         G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
         max_node_id  = max(G.nodes) + 1
-        print(new_node_labels)
-        print(new_edge_labels)
-        print('-'*100)
         
     edge_labels_concat = np.random.randint(0, num_edges_label, 3).tolist()
     new_node_labels = []
@@ -177,7 +176,17 @@ def create_data_for_GCN(G, num_nodes_label):
     indexs2 = torch.LongTensor(np.array([(ele[1], ele[0]) for ele in list(G.edges)]).T)
     indexs3 = torch.LongTensor(np.array([(node, node) for node in range(num_nodes)]).T)
     indexs = torch.cat((indexs1, indexs2, indexs3), dim=1)
-    values = torch.FloatTensor(np.ones(indexs.shape[1]))
+    values = []
+    for i in range(indexs1.shape[1]):
+        values.append(1/(np.sqrt(G.degree(indexs1[0][i]) + 1) * np.sqrt(G.degree(indexs1[1][i]) + 1))) 
+    for i in range(indexs2.shape[1]):
+        values.append(1/(np.sqrt(G.degree(indexs2[0][i]) + 1) * np.sqrt(G.degree(indexs2[1][i]) + 1))) 
+    for i in range(indexs3.shape[1]):
+        values.append(1/(np.sqrt(G.degree(indexs3[0][i]) + 1) * np.sqrt(G.degree(indexs3[1][i]) + 1))) 
+    
+    values = torch.FloatTensor(np.array(values))
+    import pdb
+    pdb.set_trace()
     adj = torch.sparse.FloatTensor(indexs, values, torch.Size([num_nodes, num_nodes]))
     return features, adj, degree, edges
 
@@ -241,8 +250,6 @@ if __name__ == "__main__":
     # import pdb
 
     if args.load_embs and os.path.exists('emb.npy'):
-        # embeddings2 = np.loadtxt("visualize_data/DBSCAN_embeddings.tsv", delimiter='\t')
-        # embeddings = F.normalize(torch.FloatTensor(embeddings2)).detach().cpu().numpy()
         embeddings = np.load('emb.npy')
     else:
         if args.model == "GCN":
@@ -257,29 +264,31 @@ if __name__ == "__main__":
     
     print("Clustering...")
     st_clustering_time = time.time()
-    # for ep in [0.001, 0.0001, 0.00001, 0.000001, 0.0000001]:
-    for ep in [0.0085, 0.0075, 8e-3, 7e-3, 6e-3, 4e-3,  1e-3, 5e-4, 1e-4]: # 4e-3 ok
+    ep = 1e-6
+    while True
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
+        print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
+        labels_center = [labels[index] for index in center1s]
+        print("Labels of centers: {}".format(labels_center))
+        if len(Counter(labels_center)) > 1:
+            print("epsilon is too small")
+            ep *= 2
         if len(Counter(labels)) < 3:
             print("number of cluster smaller than 3")
-            continue
-        print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
+            break
         # save_visualize_data(embeddings2, labels, args.clustering_method, G)
-
-        st_evaluate_time = time.time()
-
-        print("Eval for centers 1")
         success = evaluate(embeddings, center1s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
         if not success:
+            ep /= 1.5
             continue
         else:
+            print("FINAL epsilon is: {}".format(ep))
             break
-        # print("")
-        print("Eval for centers 2")
-        success = evaluate(embeddings, center2s, labels, G, 'gSpan/graphdata/{}.outx'.format(args.data_name))
-        if success:
-            break
+
+    import os
+    if not os.path.exists('output_graphs'):
+        os.mkdir('ouput_graphs')
 
     def save_graph_to_file(G, path):
         with open(path, 'w', encoding='utf-8') as file:
@@ -289,8 +298,8 @@ if __name__ == "__main__":
             for edge in G.edges:
                 file.write('e {} {} {}\n'.format(edge[0], edge[1], G.edges[(edge[0], edge[1])]['label']))
         file.close()
-    save_graph_to_file(G, 'mico2.lg')
-    with open('mic2_centers.lg', 'w', encoding='utf-8') as file:
+    save_graph_to_file(G, 'output_graphs' + '/mico_10_3_added_subgraphs.lg')
+    with open('output_graphs' + '/mic_10_3_added_subgraphs_centers.lg', 'w', encoding='utf-8') as file:
         for node in center1s:
             file.write('{}\n'.format(node))
     file.close()

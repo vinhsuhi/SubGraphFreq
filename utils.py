@@ -115,9 +115,6 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
     
     labels_center = [labels[index] for index in centers]
     labels_center_count = Counter(labels_center)
-    if len(labels_center_count) > 1:
-        print(labels_center_count)
-        return 0
     print("clusering results, number of clusters: {}".format(len(labels_counter)))
     print(labels_counter)
     print("labels of center nodes: {}".format(labels_center_count))
@@ -129,8 +126,6 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
     count_att_labels = Counter([Graph.nodes[node]['label'] for node in points_in_label])
     points_in_label = [node for node in points_in_label if count_att_labels[Graph.nodes[node]['label']] > Threshold]
     att_label_set = set([Graph.nodes[node]['label'] for node in points_in_label])
-    # count_att_labels = Counter([Graph[node]['label'] for node in points_in_label])
-    # num_unique_att = len(count_att_labels)
     if labels_counter[labels[centers[0]]] > 1000:
         print("too large")
         return 0
@@ -146,9 +141,10 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set)
     att_label_dict = {ele: i for i, ele in enumerate(att_label_set)}
     for start_node in points_in_label:
         subgraph_depth = get_subgraph(Graph, start_node,2)
-        if len(subgraph_depth.nodes) > 300:
+        if len(subgraph_depth.nodes) > 100:
             continue
         subgraphs[start_node] = subgraph_depth
+    print("Number of subgraphs to be saved: {}".format(len(subgraphs)))
 
     count = 0
     groundtruth = []
@@ -162,9 +158,9 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set)
             for node in id2idx:
                 the_start_label = Graph.nodes[node]['label']
                 if the_start_label not in att_label_dict:
-                    the_start_label += len(att_label_dict)
+                    the_start_label += len(att_label_dict) + 1
                 else:
-                    the_start_label = att_label_dict[the_start_label]
+                    the_start_label = att_label_dict[the_start_label] + 1
                 if node == key:
                     file.write('v {} {}\n'.format(id2idx[node], the_start_label))
                 else:

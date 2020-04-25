@@ -191,7 +191,8 @@ class gSpan(object):
                  is_undirected=True,
                  verbose=False,
                  visualize=False,
-                 where=False):
+                 where=False,
+                 cl=None):
         """Initialize gSpan instance."""
         self._database_file_name = database_file_name
         self.graphs = dict()
@@ -211,6 +212,7 @@ class gSpan(object):
         self._visualize = visualize
         self._where = where
         self.timestamps = dict()
+        self.cl = cl
         if self._max_num_vertices < self._min_num_vertices:
             print('Max number of vertices can not be smaller than '
                   'min number of that.\n'
@@ -316,7 +318,8 @@ class gSpan(object):
             self._counter = itertools.count()
 
     @record_timestamp
-    def run(self, center_labels=None):
+    def run(self):
+        center_labels = self.cl
         """Run the gSpan algorithm."""
         print("Center_labels: {}".format(center_labels))
         self._read_graphs() # read from files, and create a list called graphs contains Graph

@@ -40,15 +40,44 @@ def save_edge_list(edges, nodes, to_save):
 
 
 if __name__ == "__main__":
-    # source_path = 'GraMi/Datasets/mico.lg'
-    # target_path = 'GraMi/Datasets/mico_10_3.lg'
-    # nodes, edges = read_source(source_path)
-    # save_edge_list(edges, nodes, target_path)
+    source_path = 'GraMi/Datasets/mico.lg'
+    target_path = 'GraMi/Datasets/mico_10_3.lg'
+    nodes, edges = read_source(source_path)
+    save_edge_list(edges, nodes, target_path)
     # # save_edge_list(read_source(source_path), target_path)
-    # print("DONE!")
-
+    print("DONE!")
+    exit()
     source_path = "mico_10_3_all.outx"
     target_path = "mico_10_3_100.outx"
+
+    graphs = []
+    with open(source_path, 'r', encoding='utf-8') as file:
+        nodes = []
+        edges = []
+        for line in file:
+            if 't' in line:
+                print(len(nodes))
+                if len(nodes) > 0 and len(nodes) < 100:
+                    graphs.append((nodes, edges))
+                nodes = []
+                edges = []
+                # nodes = []
+            if 'v' in line:
+                nodes.append(line)
+            if 'e' in line:
+                edges.append(line)
+    file.close()
+    with open(source_path, 'w', encoding='utf-8') as file:
+        for i, graph in enumerate(graphs):
+            file.write('t # {}\n'.format(i))
+            for node in nodes:
+                file.write(node)
+            for edge in edges:
+                file.write(edge)
+
+    file.close()            
+
+
 
     with open(target_path, 'w', encoding='utf-8') as file2: 
         with open(source_path, 'r', encoding='utf-8') as file:

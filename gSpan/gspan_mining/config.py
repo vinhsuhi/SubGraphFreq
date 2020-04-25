@@ -70,9 +70,7 @@ parser.add_argument(
 )
 # vinhsuhi
 parser.add_argument(
-    '-h', '--label',
+    '--clabel',
     type=str,
     default="",
-    help='bool, output where one frequent subgraph appears in database, '
-         'default off'
 )

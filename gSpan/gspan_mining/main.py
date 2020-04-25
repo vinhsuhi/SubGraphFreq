@@ -21,12 +21,12 @@ def main(FLAGS=None):
         print('{} does not exist.'.format(FLAGS.database_file_name))
         sys.exit()
 
-    if not os.path.exists(FLAGS.label):
-        print('{} does not exist.'.format(FLAGS.label))
+    if not os.path.exists(FLAGS.clabel):
+        print('{} does not exist.'.format(FLAGS.clabel))
         sys.exit()
     else:
         center_labels = []
-        with open(FLAGS.label, 'r', encoding='utf-8') as file:
+        with open(FLAGS.clabel, 'r', encoding='utf-8') as file:
             for line in file:
                 data_line = line.split()
                 if len(data_line >0):
@@ -42,7 +42,8 @@ def main(FLAGS=None):
         is_undirected=(not FLAGS.directed),
         verbose=FLAGS.verbose,
         visualize=FLAGS.plot,
-        where=FLAGS.where
+        where=FLAGS.where,
+        cl = FLAGS.clabel
     )
 
     gs.run(center_labels)
