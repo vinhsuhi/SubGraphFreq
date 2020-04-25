@@ -179,7 +179,6 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set)
     with open(file_name + "att_label_center", 'w', encoding='utf-8') as file:
         for label in att_label_set:
             file.write('{}\n'.format(att_label_dict[label] + 1))
-            
             print("center new label: {}".format(att_label_dict[label] + 1))
     file.close()
     # with open(file_name + "true_label", 'w', encoding='utf-8') as file:
