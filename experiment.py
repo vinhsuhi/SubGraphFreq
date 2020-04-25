@@ -178,11 +178,11 @@ def create_data_for_GCN(G, num_nodes_label):
     indexs = torch.cat((indexs1, indexs2, indexs3), dim=1)
     values = []
     for i in range(indexs1.shape[1]):
-        values.append(1/(np.sqrt(G.degree(indexs1[0][i]) + 1) * np.sqrt(G.degree(indexs1[1][i]) + 1))) 
+        values.append(1/(np.sqrt(G.degree(int(indexs1[0][i])) + 1) * np.sqrt(G.degree(int(indexs1[1][i])) + 1))) 
     for i in range(indexs2.shape[1]):
-        values.append(1/(np.sqrt(G.degree(indexs2[0][i]) + 1) * np.sqrt(G.degree(indexs2[1][i]) + 1))) 
+        values.append(1/(np.sqrt(G.degree(int(indexs2[0][i])) + 1) * np.sqrt(G.degree(int(indexs2[1][i])) + 1))) 
     for i in range(indexs3.shape[1]):
-        values.append(1/(np.sqrt(G.degree(indexs3[0][i]) + 1) * np.sqrt(G.degree(indexs3[1][i]) + 1))) 
+        values.append(1/(np.sqrt(G.degree(int(indexs3[0][i])) + 1) * np.sqrt(G.degree(int(indexs3[1][i])) + 1))) 
     
     values = torch.FloatTensor(np.array(values))
     import pdb
