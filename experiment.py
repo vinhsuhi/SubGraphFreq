@@ -110,9 +110,9 @@ def learn_embedding(features, adj, degree, edges):
 
 def gen_data(path, kara_center, num_adds, labels=[]):
     G, num_nodes_label, num_edges_label = read_attributed_graph(path)
-
-    G_mouse = read_graph('data/mouse.edges')
     max_node_id  = max(G.nodes()) + 1
+
+    # G_mouse = read_graph('data/mouse.edges')
 
     # nodes_to_remove = [4, 5, 6, 19, 21, 31, 23, 13, 7 , 15, 22, 23, 25, 28, 3, 29, 17, 31, 32, 1, 3, 24, 8, 9]
     # nodes_to_remove = [23, 25, 28, 3, 29, 17, 31, 32, 1]
@@ -121,7 +121,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
 
     # 1
-    edge_labels_concat = np.random.randint(0, num_edges_label, 9).tolist()
+    edge_labels_concat = np.random.randint(0, num_edges_label, 6).tolist()
     new_node_labels = []
     new_edge_labels = []
     center1s = []
@@ -132,12 +132,16 @@ def gen_data(path, kara_center, num_adds, labels=[]):
             new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
         center1s.append(center)
         edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
-        G.add_nodes_from([(nodes1[k], {'label': new_node_labels[k]}) for k in range(len(nodes1))])
+        nodes = [(nodes1[k], {'label': new_node_labels[k]}) for k in range(len(nodes1))]
+        G.add_nodes_from(nodes)
         G.add_edges_from(edges)
-        nodes_to_concat = np.array([mapping[ele] for ele in [26, 19, 21]]) + max_node_id 
+        nodes_to_concat = np.array([mapping[ele] for ele in [26, 19]]) + max_node_id 
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
         G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
         max_node_id  = max(G.nodes) + 1
+        print(new_node_labels)
+        print(new_edge_labels)
+        print('-'*100)
         
     edge_labels_concat = np.random.randint(0, num_edges_label, 3).tolist()
     new_node_labels = []
@@ -157,7 +161,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     #     G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
     #     max_node_id  = max(G.nodes()) + 1
 
-    print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
+    # print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
     return G, center1s, center2s, num_nodes_label, num_edges_label
 
 
@@ -190,11 +194,6 @@ def create_data_for_Graphsage(G, num_nodes_label):
     save_graph(features, graphsage_G, id2idx, args.data_name, args.dir)
     graph_data = load_data(args.prefix)
     return graph_data
-
-
-# def load_data(data_path):
-    # print("Have not implement yet")
-    # return 
 
 
 def save_visualize_data(embeddings, labels, method, G):
