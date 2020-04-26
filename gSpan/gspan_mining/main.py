@@ -29,7 +29,7 @@ def main(FLAGS=None):
         with open(FLAGS.clabel, 'r', encoding='utf-8') as file:
             for line in file:
                 data_line = line.split()
-                if len(data_line >0):
+                if len(data_line)>0:
                     center_labels.append(data_line[0])
         
 
@@ -46,7 +46,7 @@ def main(FLAGS=None):
         cl = FLAGS.clabel
     )
 
-    gs.run(center_labels)
+    gs.run()
     gs.time_stats()
     return gs
 
