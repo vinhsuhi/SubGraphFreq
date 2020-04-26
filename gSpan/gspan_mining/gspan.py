@@ -352,7 +352,7 @@ class gSpan(object):
 
     def _get_support(self, projected):
         gids = set([pdfs.gid for pdfs in projected])
-        print(gids)
+        # print(gids)
         return len(gids)
 
     def _report_size1(self, g, support):
@@ -564,6 +564,7 @@ class gSpan(object):
             return
         if not self._is_min():
             return
+        print("Reporting...")
         self._report(projected)
 
         num_vertices = self._DFScode.get_num_vertices()
