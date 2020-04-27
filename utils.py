@@ -168,8 +168,6 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set)
                 
             for edge in value.edges():
                 file.write('e {} {} {}\n'.format(id2idx[edge[0]], id2idx[edge[1]], Graph.edges[(edge[0], edge[1])]['label']))
-            if count == 100:
-                break
     file.close()
 
     with open(file_name + "labels_graph", 'w', encoding='utf-8') as file:
