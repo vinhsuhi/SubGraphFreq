@@ -40,15 +40,15 @@ def save_edge_list(edges, nodes, to_save):
 
 
 if __name__ == "__main__":
-    source_path = 'GraMi/Datasets/mico.lg'
-    target_path = 'GraMi/Datasets/mico_10_3.lg'
-    nodes, edges = read_source(source_path)
-    save_edge_list(edges, nodes, target_path)
-    # # save_edge_list(read_source(source_path), target_path)
-    print("DONE!")
-    exit()
-    source_path = "mico_10_3_all.outx"
-    target_path = "mico_10_3_100.outx"
+    # source_path = 'GraMi/Datasets/mico.lg'
+    # target_path = 'GraMi/Datasets/mico_10_3.lg'
+    # nodes, edges = read_source(source_path)
+    # save_edge_list(edges, nodes, target_path)
+    # # # save_edge_list(read_source(source_path), target_path)
+    # print("DONE!")
+    # exit()
+    source_path = "mico.outx"
+    target_path = "mico_100.outx"
 
     graphs = []
     with open(source_path, 'r', encoding='utf-8') as file:
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     with open(target_path, 'w', encoding='utf-8') as file2: 
         with open(source_path, 'r', encoding='utf-8') as file:
             for line in file:
-                if 't # 101' in line:
+                if 't # 100' in line:
                     break
                 file2.write(line)
     file.close()
