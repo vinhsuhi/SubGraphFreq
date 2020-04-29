@@ -116,7 +116,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
 
     # G_mouse = read_graph('data/mouse.edges')
 
-    nodes_to_remove = [4, 5, 6, 21, 31, 23, 13, 7 , 15, 22, 23, 25, 28] #, 3, 29, 17, 31, 32, 1, 3, 24, 8, 9]
+    nodes_to_remove = [14, 20, 18, 15, 22, 16, 5, 11, 9, 17, 12, 21, 19] #, 3, 29, 17, 31, 32, 1, 3, 24, 8, 9]
     # nodes_to_remove = [23, 25, 28, 3, 29, 17, 31, 32, 1]
     # nodes_to_remove = []
 
