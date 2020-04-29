@@ -61,11 +61,11 @@ def read_attributed_graph(path):
         for line in file:
             data_line = line.split()
             if 'v' in line:
-                nodes.append((int(data_line[1]), {'label': int(data_line[2])}))
-                node_feats.add(int(data_line[2]))
+                nodes.append((int(data_line[1]), {'label': int(float(data_line[2]))}))
+                node_feats.add(int(float(data_line[2])))
             elif 'e' in line:
-                edges.append((int(data_line[1]), int(data_line[2]), {'label': int(data_line[3])}))
-                edge_feats.add(int(data_line[3]))
+                edges.append((int(data_line[1]), int(data_line[2]), {'label': int(float(data_line[3]))}))
+                edge_feats.add(int(float(data_line[3])))
     
     node_feats = list(node_feats)
     edge_feats = list(edge_feats)
