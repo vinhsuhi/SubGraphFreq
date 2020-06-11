@@ -131,7 +131,7 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
         return 0
     
     results = save_subgraph(Graph, points_in_label, centers, file_name, list(att_label_set))
-    return 1
+    return results
 
 
 
