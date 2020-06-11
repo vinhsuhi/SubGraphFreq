@@ -108,7 +108,7 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
 
 
 def evaluate(embeddings, centers, labels, Graph, file_name):
-    Threshold = 400
+    Threshold = int(0.8 * len(centers))
     print("-"*100)
     
     labels_counter = Counter(labels)

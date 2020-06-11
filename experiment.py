@@ -255,7 +255,7 @@ if __name__ == "__main__":
             st_emb_time = time.time()
             embeddings, embeddings2 = run_graph(graph_data, args)
             print("embedding times: {:.4f}".format(time.time() - st_emb_time))
-    
+
     print("Clustering...")
     st_clustering_time = time.time()
     ep = 1e-6
@@ -273,7 +273,7 @@ if __name__ == "__main__":
         # check label of centers, if it the same, ok. But... increase epsilon
         labels_center = [labels[index] for index in center1s]
         print("Labels of centers: {}".format(labels_center))
-        if len(Counter(labels_center)) > 1:
+        if (len(Counter(labels_center)) > 1) or (0 in labels_center):
             print("epsilon is too small")
             ep *= 2
             continue
