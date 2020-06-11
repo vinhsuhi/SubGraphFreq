@@ -53,11 +53,21 @@ class SupervisedGraphSage(nn.Module):
         # import pdb
         # pdb.set_trace()
     
+    def reset(self,degrees, adj_lists, feat_data):
+        self.adj_lists = adj_lists
+        self.feat_data = feat_data
+        self.degrees = degrees
+        self.max_degree = np.max(self.degrees)
+
 
     def agg_one_hop(self, nodes):
         nodes = list(nodes)
         node_feats = self.feat_data[nodes]
-        neighbors_feat = self.feats[nodes]
+        for node in nodes:
+            node_neighbors = self.adj_lists[node]
+            import pdb
+            pdb.set_trace()
+        # neighbors_feat = self.feats[nodes]
         agg = torch.cat((node_feats, neighbors_feat), dim=1)
         emb = self.linear1(agg)
         return emb
