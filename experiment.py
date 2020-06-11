@@ -290,15 +290,16 @@ if __name__ == "__main__":
 
     graphs = success
     embeddings = []
-    for start_point, graph in graphs:
+    for start_point, graph in graphs.items():
         adj = nx.adjacency_matrix(graph).todense()
         adj = torch.FloatTensor(adj)
         this_feats = features[[node for node in graph.nodes]]
         this_feats = torch.FloatTensor(this_feats)
-        if emb_model.is_cuda:
+        if True:
             adj = adj.cuda()
             this_feats = this_feats.cuda()
-        embedding = emb_model(adj, features)
+        embedding = emb_model(adj, this_feats)
+        embedding = embedding.detach().cpu().numpy()
         embeddings.append(embedding)
     
     import pdb
