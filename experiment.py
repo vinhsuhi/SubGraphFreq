@@ -302,6 +302,8 @@ if __name__ == "__main__":
         embedding = embedding.detach().cpu().numpy()
         embeddings.append(embedding)
     
+    final_emb = np.concatenate(embeddings, axis=0)
+    
     import pdb
     pdb.set_trace()
 
