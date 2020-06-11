@@ -105,7 +105,7 @@ def learn_embedding(features, adj, degree, edges):
     # embeddings = torch.cat(outputs, dim=1)
     
     embeddings = output.detach().cpu().numpy()
-    return embeddings
+    return embeddings, model
 
 
 def gen_data(path, kara_center, num_adds, labels=[]):
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     else:
         if args.model == "GCN":
             features, adj, degree, edges = create_data_for_GCN(G, num_nodes_label)
-            embeddings = learn_embedding(features, adj, degree, edges)
+            embeddings, emb_model = learn_embedding(features, adj, degree, edges)
             np.save('emb.npy', embeddings)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, args)
@@ -286,6 +286,27 @@ if __name__ == "__main__":
         else:
             print("FINAL epsilon is: {}".format(ep))
             break
+
+
+    graphs = success
+    embeddings = []
+    for start_point, graph in graphs:
+        adj = nx.adjacency_matrix(graph).todense()
+        adj = torch.FloatTensor(adj)
+        this_feats = features[[node for node in graph.nodes]]
+        this_feats = torch.FloatTensor(this_feats)
+        if emb_model.is_cuda:
+            adj = adj.cuda()
+            this_feats = this_feats.cuda()
+        embedding = emb_model(adj, features)
+        embeddings.append(embedding)
+    
+    import pdb
+    pdb.set_trace()
+
+
+
+
 
     import os
     if not os.path.exists('output_graphs'):
