@@ -303,7 +303,13 @@ if __name__ == "__main__":
         embeddings.append(embedding)
     
     final_emb = np.concatenate(embeddings, axis=0)
+    np.savetxt("embeddings.tsv", final_emb, delimiter="\t")
+    with open("label.tsv", 'w', encoding='utf-8') as file:
+        for i in range(len(embeddings)):
+            for j in range(len(embeddings[i])):
+                file.write('{}\n'.format(i))
     
+
     import pdb
     pdb.set_trace()
 
