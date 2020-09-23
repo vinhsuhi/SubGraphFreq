@@ -1,50 +1,41 @@
-import matplotlib.pyplot as plt
-import networkx as nx
+
+from sklearn.cluster import DBSCAN, KMeans
 import numpy as np
-from models.GCN import FA_GCN
-import torch
-from tqdm import tqdm
-import torch.nn.functional as F
-from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2, read_attributed_graph
-from models.graphsage.model import run_graph
-import argparse
-from sklearn.cluster import DBSCAN
-import os
 from collections import Counter
-import time
-from models.graphsage.prediction import BipartiteEdgePredLayer
 
 
+emb_path = "embeddings.tsv"
+embeddings = np.loadtxt(emb_path, delimiter='\t')
+print(embeddings)
 
-def read_graph_corpus(path, label_center_path=None):
-    graphs = []
-    max_node_label = 0
-    with open(path, 'r', encoding='utf-8') as file:
-        nodes = {}
-        edges = {}
-        for line in file:
-            if 't' in line:
-                if len(nodes) > 0:
-                    graphs.append((nodes, edges))
-                nodes = {}
-                edges = {}
-            if 'v' in line:
-                data_line = line.split()
-                node_id = int(data_line[1])
-                node_label = int(data_line[2])
-                nodes[node_id] = node_label
-                if node_label > max_node_label:
-                    max_node_label = node_label
-            if 'e' in line:
-                data_line = line.split()
-                source_id = int(data_line[1])
-                target_id = int(data_line[2])
-                label = int(data_line[3])
-                edges[(source_id, target_id)] = label
-    return graphs
+label_path = "label.tsv"
+label = []
 
-if __name__ == "__main__":
-    graph_path = "mico.outx"
-    graphs = read_graph_corpus(graph_path)
-    import pdb 
-    pdb.set_trace()
+with open(label_path, 'r', encoding='utf-8') as file:
+    for line in file:
+        data_line = line.strip()
+        label.append(int(data_line))
+label_count = Counter(label)
+print(label_count)
+max_len = max(list(label_count.values()))
+
+# kmeans = KMeans()
+kmeans = KMeans(n_clusters=max_len, random_state=0).fit(embeddings)
+kmeans_label = kmeans.labels_
+with open("k_means_labels.tsv", "w", encoding='utf-8') as file:
+    file.write("graph_label"+ "\t" +"clus_label\n")
+    for i in range(len(label)):
+        file.write("{}\t{}\n".format(label[i], kmeans_label[i]))
+
+kmeans_counter = Counter(kmeans_label)
+print(kmeans_counter)
+count_lol = 0
+for ele, count in kmeans_counter.items():
+    if count < 50:
+        count_lol += 1
+print(count_lol) 
+
+# labels = kmeans.labels_
+# with open("k_means_labels.tsv", "w", encoding='utf-8') as file:
+#     for i in range(len(labels)):
+#         file.write("{}\n".format(labels[i]))

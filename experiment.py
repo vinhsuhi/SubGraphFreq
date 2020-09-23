@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2, read_attributed_graph
 from models.graphsage.model import run_graph
 import argparse
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, KMeans
 import os
 from collections import Counter
 import time
@@ -65,7 +65,7 @@ def link_pred_loss(inputs1, inputs2, embeddings, degrees):
     batch_size = len(outputs1)
 
     link_pred_layer = BipartiteEdgePredLayer(is_normalized_input=True)
-    batch_isze = len(inputs1)
+    batch_size = len(inputs1)
     loss = link_pred_layer.loss(outputs1, outputs2, neg_outputs) / batch_size
     return loss
 
@@ -304,19 +304,63 @@ if __name__ == "__main__":
     
     final_emb = np.concatenate(embeddings, axis=0)
     np.savetxt("embeddings.tsv", final_emb, delimiter="\t")
-    with open("label.tsv", 'w', encoding='utf-8') as file:
-        for i in range(len(embeddings)):
-            for j in range(len(embeddings[i])):
-                file.write('{}\n'.format(i))
-    
+    max_len = max([len(emb) for emb in embeddings])
+    kmeans = KMeans(n_clusters=max_len, random_state=0).fit(final_emb)
+    kmean_labels = kmeans.labels_
+    with open("k_means_labels.tsv", "w", encoding='utf-8') as file:
+        # file.write("{}\t{}\n".format("graph_label", "cluster_label"))
+        for i in range(len(kmean_labels)):
+            file.write("{}\n".format(kmean_labels[i]))
+    file.close()
 
     import pdb
+    idx2id = dict()
+    node_lists = [[node for node in gr.nodes] for gr in graphs.values()]
+    graphs_list = list(graphs.values())
+    node_atts = []
+    current_based_index = 0
+    for i in range(len(embeddings)):
+        node_att = dict()
+        for j in range(len(embeddings[i])):
+            index = current_based_index + j
+            cluster_label = kmean_labels[index]
+            node_att[node_lists[i][j]] = {'label': graphs_list[i].nodes[node_lists[i][j]]['label'], 'cluster_label': cluster_label}
+        node_atts.append(node_att)
+        nx.set_node_attributes(graphs_list[i], node_att)
+
+    
+    cluster_edge_count = dict()
+    for i, graph in enumerate(graphs_list):
+        for edge in graph.edges(data=True):
+            node_0, node_1, edge_label = edge[0], edge[1], edge[2]['label']
+            node_0_cluster = graph.nodes[node_0]['cluster_label']
+            node_1_cluster = graph.nodes[node_1]['cluster_label']
+            node_0_label = graph.nodes[node_0]['label']
+            node_1_label = graph.nodes[node_1]['label']
+            cluster_pair = sorted([node_0_cluster, node_1_cluster]) + [edge_label] + sorted([node_0_label, node_1_label])
+            cluster_pair = "_".join([str(ele) for ele in cluster_pair])
+            if cluster_pair not in cluster_edge_count:
+                cluster_edge_count[cluster_pair] = {i: sorted([node_0, node_1])}
+            else:
+                cluster_edge_count[cluster_pair][i] = sorted([node_0, node_1])
+    
     pdb.set_trace()
 
 
 
+    # for i in range(len(final_emb)):
+    #     graph_index = -1
+    #     sum_len = 0
+    #     while sum_len <= i:
+    #         graph_index += 1
+    #         sum_len += len(embeddings[graph_index])
+    #     sum_len -= len(embeddings[graph_index])
+    #     cluster_id = kmean_labels[i]
 
 
+            
+
+    exit()
     import os
     if not os.path.exists('output_graphs'):
         os.mkdir('output_graphs')
