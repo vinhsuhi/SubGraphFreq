@@ -35,6 +35,37 @@ def create_small_graph2(graph, max_node_label, center):
     nodes = np.array(list(graph.nodes)) + max_node_label
     return edges, center, mapping, nodes.tolist()
 
+def create_small_graph3(max_node_label):
+    # create a fix *-graph
+    edges = [[0, 1],
+         [0, 2],
+         [0, 3],
+         [0, 4],
+         [0, 5],
+         [0, 6],
+         [0, 7],
+         [0, 8],
+         [1, 9],
+         [2, 10],
+         [3, 11],
+         [4, 12],
+         [5, 13],
+         [6, 14],
+         [7, 15],
+         [8, 16]
+    ]
+    # ----------
+    graph = nx.Graph()
+    G1.add_edges_from(edges)
+
+    mapping = {node: i for i, node in enumerate(graph.nodes())}
+    center = mapping[0] + max_node_label
+    graph = nx.relabel_nodes(graph, mapping)
+    edges = graph.edges()
+    edges = np.array(edges)
+    edges += max_node_label
+    nodes = np.array(list(graph.nodes)) + max_node_label
+    return edges, center, mapping, nodes.tolist()
 
 
 def read_graph(path):

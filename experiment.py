@@ -129,9 +129,9 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     new_edge_labels = []
     center1s = []
     for i in range(num_adds):
-        edges, center, mapping, nodes1 = create_small_graph(max_node_id , kara_center, nodes_to_remove)
+        edges, center, mapping, nodes1 = create_small_graph3(max_node_id)
         if i == 0:
-            new_node_labels = np.random.randint(0, num_nodes_label, len(nodes1)).tolist()
+            new_node_labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
             new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
         center1s.append(center)
         edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
@@ -142,6 +142,21 @@ def gen_data(path, kara_center, num_adds, labels=[]):
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
         G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
         max_node_id  = max(G.nodes) + 1
+
+    # for i in range(num_adds):
+    #     edges, center, mapping, nodes1 = create_small_graph(max_node_id , kara_center, nodes_to_remove)
+    #     if i == 0:
+    #         new_node_labels = np.random.randint(0, num_nodes_label, len(nodes1)).tolist()
+    #         new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
+    #     center1s.append(center)
+    #     edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
+    #     nodes = [(nodes1[k], {'label': new_node_labels[k]}) for k in range(len(nodes1))]
+    #     G.add_nodes_from(nodes)
+    #     G.add_edges_from(edges)
+    #     nodes_to_concat = np.array([mapping[ele] for ele in [26, 19]]) + max_node_id 
+    #     pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
+    #     G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
+    #     max_node_id  = max(G.nodes) + 1
         
     edge_labels_concat = np.random.randint(0, num_edges_label, 3).tolist()
     new_node_labels = []
