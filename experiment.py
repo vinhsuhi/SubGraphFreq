@@ -5,7 +5,7 @@ from models.GCN import FA_GCN
 import torch
 from tqdm import tqdm
 import torch.nn.functional as F
-from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2, read_attributed_graph
+from utils import create_small_graph, read_graph, create_adj, connect_two_graphs, evaluate, load_data, save_graph, create_small_graph2, create_small_graph3, read_attributed_graph
 from models.graphsage.model import run_graph
 import argparse
 from sklearn.cluster import DBSCAN, KMeans
@@ -138,7 +138,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
         nodes = [(nodes1[k], {'label': new_node_labels[k]}) for k in range(len(nodes1))]
         G.add_nodes_from(nodes)
         G.add_edges_from(edges)
-        nodes_to_concat = np.array([mapping[ele] for ele in [26, 19]]) + max_node_id 
+        nodes_to_concat = np.array([mapping[ele] for ele in [10, 16]]) + max_node_id 
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
         G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
         max_node_id  = max(G.nodes) + 1
