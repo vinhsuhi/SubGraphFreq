@@ -120,7 +120,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     nodes_to_remove = [14, 20, 18, 15, 22, 16, 5, 11, 9, 17, 12, 21] #, 3, 29, 17, 31, 32, 1, 3, 24, 8, 9]
     # nodes_to_remove = [23, 25, 28, 3, 29, 17, 31, 32, 1]
     # nodes_to_remove = []
-
+    print("Number of node labels:{0}, and edge labels:{1}".format(num_nodes_label, num_edges_label))
     print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
 
     # 1
