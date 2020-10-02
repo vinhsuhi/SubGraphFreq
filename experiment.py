@@ -302,6 +302,9 @@ if __name__ == "__main__":
             print("FINAL epsilon is: {}".format(ep))
             break
 
+    # Saving data for visualising
+    print)("Saving data for visuallise...")        
+    save_visualize_data(embeddings,labels,'DBSCAN',G)        
 
     graphs = success
     embeddings = []
@@ -328,6 +331,7 @@ if __name__ == "__main__":
             file.write("{}\n".format(kmean_labels[i]))
     file.close()
 
+    
     import pdb
     idx2id = dict()
     node_lists = [[node for node in gr.nodes] for gr in graphs.values()]
