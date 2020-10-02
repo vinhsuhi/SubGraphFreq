@@ -14,4 +14,7 @@ cd gSpan
 
 scp -P 15458 vinhtv@0.tcp.ngrok.io:vinh/SubGraphFreq/GraMi/Datasets/mico_10_3.lg .
 
+scp -P 10137 toannt@0.tcp.ngrok.io:/home/toannt/workspace/SubGraphFreq/embeddings.tsv .
+scp -P 10137 toannt@0.tcp.ngrok.io:/home/toannt/workspace/SubGraphFreq/k_means_labels.tsv .
+
 python experiment.py --model GCN --num_adds 100 --data_name citeseer --large_graph_path GraMi/Datasets/citeseer.lg --dir data/citeseer --prefix data/citeseer/graphsage/citeseer --epochs 10 --batch_size 500 --output_dim 20
