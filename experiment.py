@@ -303,7 +303,7 @@ if __name__ == "__main__":
             break
 
     # Saving data for visualising
-    print)("Saving data for visuallise...")        
+    print("Saving data for visuallise...")        
     save_visualize_data(embeddings,labels,'DBSCAN',G)        
 
     graphs = success
