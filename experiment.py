@@ -138,7 +138,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
         nodes = [(nodes1[k], {'label': new_node_labels[k]}) for k in range(len(nodes1))]
         G.add_nodes_from(nodes)
         G.add_edges_from(edges)
-        nodes_to_concat = np.array([mapping[ele] for ele in [10, 16]]) + max_node_id 
+        nodes_to_concat = np.array([mapping[ele] for ele in [0]]) + max_node_id 
         pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
         G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
         max_node_id  = max(G.nodes) + 1
@@ -226,9 +226,9 @@ def save_visualize_data(embeddings, labels, method, G):
     np.savetxt('visualize_data/{}_embeddings.tsv'.format(method), embeddings, delimiter='\t')
 
     with open('visualize_data/{}_labels.tsv'.format(method), 'w', encoding='utf-8') as file:
-        file.write("{}\t{}\t{}\n".format('node_id', 'cluster_id', 'degree'))
+        file.write("{}\t{}\t{}\t{}\n".format('node_id', 'cluster_id', 'degree','node_label'))
         for i, lb in enumerate(labels):
-            file.write("{}\t{}\t{}\n".format(i, "bucket_{}".format(lb), G.degree(i)))
+            file.write("{}\t{}\t{}\t{}\n".format(i, "cluster_{}".format(lb), G.degree(i), G.nodes[i]['label']))
     
     print("DONE saving to file!")
 

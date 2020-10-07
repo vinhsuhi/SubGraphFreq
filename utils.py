@@ -117,7 +117,8 @@ def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     average_deg = 3
     pseudo_edges = []
     for node in nodes_to_concat:
-        to_cat = np.random.choice(ori_nodes, 3)
+        # to_cat = np.random.choice(ori_nodes, 3) # original code
+        to_cat = np.random.choice(ori_nodes, 1) # modified to concat with 1 edge only
         pseudo_edges += [[node, ele] for ele in to_cat]
     return pseudo_edges
 
