@@ -53,7 +53,7 @@ def create_small_graph3(max_node_label):
 
     def create_small_graph4(max_node_label):
     # create a fix tree-graph
-    edges = [[0, 1],[0, 2],[0, 3],[0, 4],[0, 5],[0, 6],[0, 7],[0, 8],[1, 9],[2, 10],[3, 11],[4, 12],[5, 13],[6, 14],[7, 15],[8, 16]]
+    edges = [[0, 1],[1, 2],[0, 4],[4, 5],[0, 3],[3, 6],[6, 7],[3, 8],[8, 9],[3, 10],[10, 11],[11, 12],[10, 13],[13, 14],[10, 15], [15, 16]]
     # ----------
     graph = nx.Graph()
     graph.add_edges_from(edges)

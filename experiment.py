@@ -129,7 +129,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     new_edge_labels = []
     center1s = []
     for i in range(num_adds):
-        edges, center, mapping, nodes1 = create_small_graph3(max_node_id)
+        edges, center, mapping, nodes1 = create_small_graph4(max_node_id)
         if i == 0:
             new_node_labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
             new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
