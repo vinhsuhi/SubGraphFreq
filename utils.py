@@ -51,7 +51,7 @@ def create_small_graph3(max_node_label):
     nodes = np.array(list(graph.nodes)) + max_node_label
     return edges, center, mapping, nodes.tolist()
 
-    def create_small_graph4(max_node_label):
+def create_small_graph4(max_node_label):
     # create a fix tree-graph
     edges = [[0, 1],[1, 2],[0, 4],[4, 5],[0, 3],[3, 6],[6, 7],[3, 8],[8, 9],[3, 10],[10, 11],[11, 12],[10, 13],[13, 14],[10, 15], [15, 16]]
     # ----------
