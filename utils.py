@@ -120,6 +120,14 @@ def read_attributed_graph(path):
     return G, num_node_labels, num_edge_labels
         
 
+def save_graph_to_file(G, path):
+    with open(path, 'w', encoding='utf-8') as file:
+        file.write('t # 1\n')
+        for node in G.nodes:
+            file.write('v {} {}\n'.format(node, G.nodes[node]['label']))
+        for edge in G.edges:
+            file.write('e {} {} {}\n'.format(edge[0], edge[1], G.edges[(edge[0], edge[1])]['label']))
+    file.close()
 
 def create_adj(edges, num_nodes):
     adj = np.zeros((num_nodes, num_nodes))
@@ -127,7 +135,6 @@ def create_adj(edges, num_nodes):
         adj[edge[0], edge[1]] = 1 
         adj[edge[1], edge[0]] = 1
     return adj
-
 
 def connect_two_graphs(nodes_to_concat, ori_nodes, prob_each = 0.7):
     average_deg = 3
