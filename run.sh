@@ -1,4 +1,4 @@
-python experiment.py --model GCN --num_adds 500 --data_name mico --large_graph_path GraMi/Datasets/mico.lg --dir data/mico --prefix data/mico/graphsage/mico --epochs 10 --batch_size 10000
+python3 experiment.py --model GCN --num_adds 500 --data_name mico --large_graph_path GraMi/Datasets/mico.lg --dir data/mico --prefix data/mico/graphsage/mico --epochs 10 --batch_size 10000
 cd gSpan
 
 python -m gspan_mining -s 499 -p True ./graphdata/mico_10_3.outx --clabel ./graphdata/mico_10_3.outxatt_label_center

@@ -278,7 +278,8 @@ if __name__ == "__main__":
 
     print("Clustering...")
     st_clustering_time = time.time()
-    ep = 1e-6
+    #ep = 1e-6
+    ep = 1e-2
     while True:
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
