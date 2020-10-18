@@ -286,10 +286,10 @@ if __name__ == "__main__":
         print("Clustering time: {:.4f}".format(time.time() - st_clustering_time))
 
         # check number of clusters
-        if len(Counter(labels)) < 3:
-            print("number of cluster smaller than 3")
-            print("exitting...")
-            exit()
+        # if len(Counter(labels)) < 3:
+        #     print("number of cluster smaller than 3")
+        #     print("exitting...")
+        #     exit()
 
         # check label of centers, if it the same, ok. But... increase epsilon
         labels_center = [labels[index] for index in center1s]
