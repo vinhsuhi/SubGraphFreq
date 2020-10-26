@@ -320,7 +320,7 @@ if __name__ == "__main__":
     def save_align_pairs(align_pairs):
         if not os.path.exists('aligned_graphs'):
             os.mkdir('aligned_graphs')
-        with open("aligned_info.txt", 'w', encoding='utf-8') as file:
+        with open("aligned_graphs/aligned_info.txt", 'w', encoding='utf-8') as file:
             for i in range(len(align_pairs)):
                 file.write("G{}\tG{}\n".format(i, i + 1))
                 for pair in align_pairs:
