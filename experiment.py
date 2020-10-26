@@ -306,7 +306,7 @@ if __name__ == "__main__":
 
     align_data = []
     for i, graph in enumerate(list_graphs):
-        if i == len(list_graphs):
+        if i == len(list_graphs) - 1:
             break
         next_graph = list_graphs[i + 1]
         emb1 = embeddings[i]
