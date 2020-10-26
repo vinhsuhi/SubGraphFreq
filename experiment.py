@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument('--num_adds', default=3, type=int)
     parser.add_argument('--load_embs', action='store_true')
     parser.add_argument('--data_name', type=str)
-    parser.add_argument('--large_graph_path', type=str, default='data/bio-DM-LC.edges')
+    parser.add_argument('--large_graph_path', type=str, default='data/biodm.edges')
     parser.add_argument('--dir', type=str, default='data/bioDM')
 
     return parser.parse_args()
@@ -113,18 +113,13 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     # Edges label is >= 0
     G, num_nodes_label, num_edges_label = read_attributed_graph(path)
     max_node_id  = max(G.nodes()) + 1
-    # import pdb
-    # pdb.set_trace()
     # G_mouse = read_graph('data/mouse.edges')
 
-    nodes_to_remove = [14, 20, 18, 15, 22, 16, 5, 11, 9, 17, 12, 21] #, 3, 29, 17, 31, 32, 1, 3, 24, 8, 9]
-    # nodes_to_remove = [23, 25, 28, 3, 29, 17, 31, 32, 1]
-    # nodes_to_remove = []
     print("Number of node labels:{0}, and edge labels:{1}".format(num_nodes_label, num_edges_label))
-    print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
+    # print("Number of nodes to be removed: {}".format(len(nodes_to_remove)))
 
     # 1
-    edge_labels_concat = np.random.randint(0, num_edges_label, 6).tolist()
+    edge_labels_concat = np.random.randint(0, num_edges_label, 4).tolist()
     new_node_labels = []
     new_edge_labels = []
     center1s = []
@@ -144,40 +139,11 @@ def gen_data(path, kara_center, num_adds, labels=[]):
         G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
         max_node_id  = max(G.nodes) + 1
 
-    # for i in range(num_adds):
-    #     edges, center, mapping, nodes1 = create_small_graph3(max_node_id)
-    #     if i == 0:
-    #         new_node_labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-    #         new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
-    #     center1s.append(center)
-    #     edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
-    #     nodes = [(nodes1[k], {'label': new_node_labels[k]}) for k in range(len(nodes1))]
-    #     G.add_nodes_from(nodes)
-    #     G.add_edges_from(edges)
-    #     nodes_to_concat = np.array([mapping[ele] for ele in [0]]) + max_node_id 
-    #     pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
-    #     G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
-    #     max_node_id  = max(G.nodes) + 1
-        
     edge_labels_concat = np.random.randint(0, num_edges_label, 3).tolist()
     new_node_labels = []
     new_edge_labels = []
     center2s = []
-    # for i in range(num_adds):
-    #     edges, center, mapping, nodes2 = create_small_graph2(G_mouse, max_node_id , 9)
-    #     if i == 0:
-    #         new_node_labels = np.random.randint(0, num_nodes_label, len(nodes1)).tolist()
-    #         new_edge_labels = np.random.randint(0, num_edges_label, len(edges)).tolist()
-    #     center2s.append(center)
-    #     edges = [(edges[k][0], edges[k][1], {'label': new_edge_labels[k]}) for k in range(len(edges))]
-    #     G.add_nodes_from([(nodes2[k], {'label': new_node_labels[k]}) for k in range(len(nodes2))])
-    #     G.add_edges_from(edges)
-    #     nodes_to_concat = np.array([mapping[ele] for ele in [1]]) + max_node_id 
-    #     pseudo_edges = connect_two_graphs(nodes_to_concat, G.nodes())
-    #     G.add_edges_from([(pseudo_edges[k][0], pseudo_edges[k][1], {'label': edge_labels_concat[k]}) for k in range(len(pseudo_edges))])
-    #     max_node_id  = max(G.nodes()) + 1
 
-    # print("Number of nodes: {}, number of edges: {}, max: {}".format(len(G.nodes()), len(G.edges()), max(G.nodes())))
     return G, center1s, center2s, num_nodes_label, num_edges_label
 
 
@@ -313,6 +279,7 @@ if __name__ == "__main__":
     print("Saving data for visuallise...")        
     save_visualize_data(embeddings,labels,'DBSCAN',G)        
 
+    # all extracted subgraphs
     graphs = success
     embeddings = []
     for start_point, graph in graphs.items():
@@ -326,6 +293,10 @@ if __name__ == "__main__":
         embedding = emb_model(adj, this_feats)
         embedding = embedding.detach().cpu().numpy()
         embeddings.append(embedding)
+
+    print("suhi")
+    import pdb
+    pdb.set_trace()
     
     final_emb = np.concatenate(embeddings, axis=0)
     np.savetxt("embeddings.tsv", final_emb, delimiter="\t")
@@ -338,8 +309,6 @@ if __name__ == "__main__":
             file.write("{}\n".format(kmean_labels[i]))
     file.close()
 
-    
-    import pdb
     idx2id = dict()
     node_lists = [[node for node in gr.nodes] for gr in graphs.values()]
     graphs_list = list(graphs.values())
@@ -353,7 +322,6 @@ if __name__ == "__main__":
             node_att[node_lists[i][j]] = {'label': graphs_list[i].nodes[node_lists[i][j]]['label'], 'cluster_label': cluster_label}
         node_atts.append(node_att)
         nx.set_node_attributes(graphs_list[i], node_att)
-
     
     cluster_edge_count = dict()
     for i, graph in enumerate(graphs_list):
