@@ -123,6 +123,7 @@ def gen_data(path, kara_center, num_adds, labels=[]):
     new_node_labels = []
     new_edge_labels = []
     center1s = []
+    nodes_to_remove = []
     
     for i in range(num_adds):
         edges, center, mapping, nodes1 = create_small_graph(max_node_id , kara_center, nodes_to_remove)
