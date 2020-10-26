@@ -295,10 +295,42 @@ if __name__ == "__main__":
         embedding = embedding.detach().cpu().numpy()
         embeddings.append(embedding)
 
-    print("suhi")
-    import pdb
-    pdb.set_trace()
+    list_graphs = list(graphs.values())
+
+    def align_embedding(emb1, emb2):
+        normalized_emb1 = emb1 / np.sqrt((emb1 ** 2).sum())
+        normalized_emb2 = emb2 / np.sqrt((emb2 ** 2).sum())
+        simi = np.dot(normalized_emb1, normalized_emb2.T)
+        align = np.argmax(simi, axis=1)
+        return align
+
+    align_data = []
+    for i, graph in enumerate(list_graphs):
+        if i == len(list_graphs):
+            break
+        next_graph = list_graphs[i + 1]
+        emb1 = embeddings[i]
+        emb2 = embeddings[i + 1]
+        align = align_embedding(emb1, emb2)
+        list_node_source = [node for node in graph.nodes()]
+        list_node_target = [node for node in next_graph.nodes()]
+        align_pairs = [[list_node_source[k], list_node_target[align[k]]] for k in range(len(align))]
+        align_data.append(align_pairs)
     
+    def save_align_pairs(align_pairs):
+        if not os.path.exists('aligned_graphs'):
+            os.mkdir('aligned_graphs')
+        with open("aligned_info.txt", 'w', encoding='utf-8') as file:
+            for i in range(len(align_pairs)):
+                file.write("G{}\tG{}\n".format(i, i + 1))
+                for pair in align_pairs:
+                    file.write("{}\t{}\n".format(pair[0], pair[1])) 
+    
+    print("Saving aligned pairs at 'aligned_graphs/aligned_info.txt'...")
+    save_align_pairs(align_pairs)
+    print("DONE!")
+    
+    """
     final_emb = np.concatenate(embeddings, axis=0)
     np.savetxt("embeddings.tsv", final_emb, delimiter="\t")
     max_len = max([len(emb) for emb in embeddings])
@@ -340,7 +372,7 @@ if __name__ == "__main__":
                 cluster_edge_count[cluster_pair][i] = sorted([node_0, node_1])
     
     pdb.set_trace()
-
+    """
 
 
     # for i in range(len(final_emb)):
