@@ -309,12 +309,14 @@ if __name__ == "__main__":
         if i == len(list_graphs) - 1:
             break
         next_graph = list_graphs[i + 1]
+        id2idx1 = {node: j for j, node in enumerate(list(graph.nodes()))}
+        id2idx2 = {node: j for j, node in enumerate(list(next_graph.nodes()))}
         emb1 = embeddings[i]
         emb2 = embeddings[i + 1]
         align = align_embedding(emb1, emb2)
         list_node_source = [node for node in graph.nodes()]
         list_node_target = [node for node in next_graph.nodes()]
-        align_pairs = [[list_node_source[k], list_node_target[align[k]]] for k in range(len(align))]
+        align_pairs = [[id2idx1[list_node_source[k]], id2idx2[list_node_target[align[k]]]] for k in range(len(align))]
         align_data.append(align_pairs)
     
     def save_align_pairs(align_pairs):
