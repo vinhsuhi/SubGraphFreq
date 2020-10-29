@@ -305,7 +305,7 @@ if __name__ == "__main__":
         return align
 
     align_data = []
-    for i, graph in enumerate(list_graphs):
+    for i, graph in tqdm(enumerate(list_graphs)):
         if i == len(list_graphs) - 1:
             break
         next_graph = list_graphs[i + 1]
@@ -319,11 +319,12 @@ if __name__ == "__main__":
         align_pairs = [[id2idx1[list_node_source[k]], id2idx2[list_node_target[align[k]]]] for k in range(len(align))]
         align_data.append(align_pairs)
     
+    
     def save_align_pairs(align_pairs):
         if not os.path.exists('aligned_graphs'):
             os.mkdir('aligned_graphs')
         with open("aligned_graphs/aligned_info.txt", 'w', encoding='utf-8') as file:
-            for i in range(len(align_pairs)):
+            for i in range(len(align_data)):
                 file.write("G{}\tG{}\n".format(i, i + 1))
                 for pair in align_pairs:
                     file.write("{}\t{}\n".format(pair[0], pair[1])) 
