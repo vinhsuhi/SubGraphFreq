@@ -1,4 +1,4 @@
-python3 experiment.py --model GCN --num_adds 500 --data_name mico --large_graph_path GraMi/Datasets/mico.lg --dir data/mico --prefix data/mico/graphsage/mico --epochs 10 --batch_size 10000
+python3 experiment.py --model GCN --num_adds 1000 --data_name mico --large_graph_path GraMi/Datasets/mico.lg --dir data/mico --prefix data/mico/graphsage/mico --epochs 10 --batch_size 10000
 cd gSpan
 
 python -m gspan_mining -s 499 -p True ./graphdata/mico_10_3.outx --clabel ./graphdata/mico_10_3.outxatt_label_center
@@ -16,5 +16,8 @@ scp -P 15458 vinhtv@0.tcp.ngrok.io:vinh/SubGraphFreq/GraMi/Datasets/mico_10_3.lg
 
 scp -P 10137 toannt@0.tcp.ngrok.io:/home/toannt/workspace/SubGraphFreq/visualize_data/DBSCAN_embeddings.tsv .
 scp -P 10137 toannt@0.tcp.ngrok.io:/home/toannt/workspace/SubGraphFreq/visualize_data/DBSCAN_labels.tsv .
+
+scp -P 10137 toannt@0.tcp.ngrok.io:/home/toannt/workspace/SubGraphFreq/aligned_graphs/aligned_info.txt .
+scp -P 10137 toannt@0.tcp.ngrok.io:/home/toannt/workspace/SubGraphFreq/gSpan/graphdata/mico.outx .
 
 python experiment.py --model GCN --num_adds 100 --data_name citeseer --large_graph_path GraMi/Datasets/citeseer.lg --dir data/citeseer --prefix data/citeseer/graphsage/citeseer --epochs 10 --batch_size 500 --output_dim 20
