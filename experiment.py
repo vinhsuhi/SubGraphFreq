@@ -298,7 +298,7 @@ if __name__ == "__main__":
         embedding = embedding.detach().cpu().numpy()
         embeddings.append(embedding)
 
-    list_graphs = list(graphs.values())
+    # list_graphs = list(graphs.values())
 
     def align_embedding(emb1, emb2):
         normalized_emb1 = emb1 / np.sqrt((emb1 ** 2).sum())
@@ -308,19 +308,33 @@ if __name__ == "__main__":
         return align
 
     align_data = []
-    for i, graph in tqdm(enumerate(list_graphs)):
-        if i == len(list_graphs) - 1:
-            break
-        next_graph = list_graphs[i + 1]
-        id2idx1 = {node: j for j, node in enumerate(list(graph.nodes()))}
-        id2idx2 = {node: j for j, node in enumerate(list(next_graph.nodes()))}
-        emb1 = embeddings[i]
-        emb2 = embeddings[i + 1]
-        align = align_embedding(emb1, emb2)
-        list_node_source = [node for node in graph.nodes()]
-        list_node_target = [node for node in next_graph.nodes()]
-        align_pairs = [[id2idx1[list_node_source[k]], id2idx2[list_node_target[align[k]]]] for k in range(len(align))]
-        align_data.append(align_pairs)
+    prev_emb = None
+    prev_graph = None
+    count = 0
+    for key, value in graphs.items():
+        this_emb = embeddings[count]
+        if prev_emb is None:
+            prev_emb = this_emb
+            pred_graph = value
+        else:
+            align = align_embedding(prev_emb, this_emb)
+            align_pairs = [[ind, align[ind]] for ind in range(len(align))]
+            align_data.append(align_pairs)
+        count += 1
+
+    # for i, graph in tqdm(enumerate(list_graphs)):
+    #     if i == len(list_graphs) - 1:
+    #         break
+    #     next_graph = list_graphs[i + 1]
+    #     id2idx1 = {node: j for j, node in enumerate(list(graph.nodes()))}
+    #     id2idx2 = {node: j for j, node in enumerate(list(next_graph.nodes()))}
+    #     emb1 = embeddings[i]
+    #     emb2 = embeddings[i + 1]
+    #     align = align_embedding(emb1, emb2)
+    #     list_node_source = [node for node in graph.nodes()]
+    #     list_node_target = [node for node in next_graph.nodes()]
+    #     align_pairs = [[id2idx1[list_node_source[k]], id2idx2[list_node_target[align[k]]]] for k in range(len(align))]
+    #     align_data.append(align_pairs)
     
     
     def save_align_pairs(align_pairs):
@@ -329,11 +343,12 @@ if __name__ == "__main__":
         with open("aligned_graphs/aligned_info.txt", 'w', encoding='utf-8') as file:
             for i in range(len(align_data)):
                 file.write("G{}\tG{}\n".format(i, i + 1))
+                align_pairs = align_data[i]
                 for pair in align_pairs:
                     file.write("{}\t{}\n".format(pair[0], pair[1])) 
     
     print("Saving aligned pairs at 'aligned_graphs/aligned_info.txt'...")
-    save_align_pairs(align_pairs)
+    save_align_pairs(align_data)
     print("DONE!")
     
     """
