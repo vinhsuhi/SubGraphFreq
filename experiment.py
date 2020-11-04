@@ -334,7 +334,7 @@ if __name__ == "__main__":
     #     align_data.append(align_pairs)
     
     
-    def save_align_pairs(align_pairs):
+    def save_align_pairs(align_data):
         if not os.path.exists('aligned_graphs'):
             os.mkdir('aligned_graphs')
         with open("aligned_graphs/aligned_info.txt", 'w', encoding='utf-8') as file:
