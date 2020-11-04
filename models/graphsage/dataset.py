@@ -91,7 +91,11 @@ class Dataset:
         self.deg = np.zeros((len(self.id_map),)).astype(int)
         for nodeid in self.nodes_ids:
             neighbors = np.array([self.id_map[neighbor] for neighbor in self.G.neighbors(nodeid)])
-            self.deg[self.id_map[nodeid]] = len(neighbors)
+            try:
+                self.deg[self.id_map[nodeid]] = len(neighbors)
+            except:
+                import pdb
+                pdb.set_trace()
 
 
     def construct_all_adj(self):

@@ -65,9 +65,7 @@ class SupervisedGraphSage(nn.Module):
         node_feats = self.feat_data[nodes]
         for node in nodes:
             node_neighbors = self.adj_lists[node]
-            import pdb
-            pdb.set_trace()
-        # neighbors_feat = self.feats[nodes]
+        neighbors_feat = self.feats[nodes]
         agg = torch.cat((node_feats, neighbors_feat), dim=1)
         emb = self.linear1(agg)
         return emb
