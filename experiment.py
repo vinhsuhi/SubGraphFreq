@@ -241,7 +241,7 @@ if __name__ == "__main__":
             embeddings, emb_model = learn_embedding(features, adj, degree, edges)
             np.save('emb.npy', embeddings)
         elif args.model == "Graphsage":
-            graph_data = create_data_for_Graphsage(G, args)
+            graph_data = create_data_for_Graphsage(G, num_nodes_label)
             st_emb_time = time.time()
             embeddings, embeddings2 = run_graph(graph_data, args)
             print("embedding times: {:.4f}".format(time.time() - st_emb_time))
