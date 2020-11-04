@@ -189,7 +189,6 @@ def evaluate(embeddings, centers, labels, Graph, file_name):
     return results
 
 
-
 def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set):
     # node_feats += 1
     subgraphs = {}
@@ -203,9 +202,7 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set)
 
     count = 0
     groundtruth = []
-    # with open(file_name, 'w', encoding='utf-8') as file:
     file = open(file_name, 'w', encoding='utf-8')
-    file2 = open(file_name[:-5] + '_100.outx', 'w', encoding='utf-8')
     for key, value in subgraphs.items():
         if key in true_labels:
             groundtruth.append(count)
@@ -218,19 +215,11 @@ def save_subgraph(Graph, points_in_label, true_labels, file_name, att_label_set)
                 the_start_label += len(att_label_dict) + 1
             else:
                 the_start_label = att_label_dict[the_start_label] + 1
-            if node == key:
-                file.write('v {} {}\n'.format(id2idx[node], the_start_label))
-                if count < 100:
-                    file2.write('v {} {}\n'.format(id2idx[node], the_start_label))
-            else:
-                file.write('v {} {}\n'.format(id2idx[node], the_start_label))
-                if count < 100:
-                    file2.write('v {} {}\n'.format(id2idx[node], the_start_label))
+            file.write('v {} {}\n'.format(id2idx[node], the_start_label))
         for edge in value.edges():
             file.write('e {} {} {}\n'.format(id2idx[edge[0]], id2idx[edge[1]], Graph.edges[(edge[0], edge[1])]['label']))
             if count < 100:
                 file2.write('e {} {} {}\n'.format(id2idx[edge[0]], id2idx[edge[1]], Graph.edges[(edge[0], edge[1])]['label']))
-    file2.close()
     file.close()
 
     with open(file_name + "labels_graph", 'w', encoding='utf-8') as file:
