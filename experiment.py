@@ -315,6 +315,7 @@ if __name__ == "__main__":
             prev_graph = value
         else:
             align = align_embedding(prev_emb, this_emb)
+            prev_emb = this_emb
             align_pairs = [[ind, align[ind]] for ind in range(len(align))]
             align_data.append(align_pairs)
         count += 1
