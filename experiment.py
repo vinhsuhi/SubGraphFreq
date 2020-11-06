@@ -241,7 +241,9 @@ if __name__ == "__main__":
     else:
         if args.model == "GCN":
             features, adj, degree, edges = create_data_for_GCN(G, num_nodes_label)
+            st_emb_time = time.time()
             embeddings, emb_model = learn_embedding(features, adj, degree, edges)
+            print("embedding times: {:.4f}".format(time.time() - st_emb_time))
             np.save('emb.npy', embeddings)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, num_nodes_label)
