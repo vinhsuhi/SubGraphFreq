@@ -13,6 +13,7 @@ import os
 from collections import Counter
 import time
 from models.graphsage.prediction import BipartiteEdgePredLayer
+import resource
 
 
 def parse_args():
@@ -225,6 +226,7 @@ if __name__ == "__main__":
 
     embeddings = []
     emb_time = 0
+    emb_memory = 0
             
     args = parse_args()
 
@@ -246,6 +248,7 @@ if __name__ == "__main__":
             embeddings, emb_model = learn_embedding(features, adj, degree, edges)
             #print("embedding times: {:.4f}".format(time.time() - st_emb_time))
             emb_time = time.time() - st_emb_time
+            emb_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
             np.save('emb.npy', embeddings)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, num_nodes_label)
@@ -253,6 +256,7 @@ if __name__ == "__main__":
             embeddings, embeddings2 = run_graph(graph_data, args)
             #print("embedding times: {:.4f}".format(time.time() - st_emb_time))
             emb_time = time.time() - st_emb_time
+            emb_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
 
     print("Clustering...")
     st_clustering_time = time.time()

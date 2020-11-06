@@ -198,6 +198,7 @@ def run_graph(graph_data,args):
      
     for epoch in range(args.epochs):
         start_etime = time.time()
+        emb_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
         print("Epoch {0}".format(epoch))
         np.random.shuffle(all_edges)
         for iter in tqdm(range(n_iters)):  ####### for iter in range(n_iters)
@@ -207,7 +208,7 @@ def run_graph(graph_data,args):
             loss.backward()
             optimizer.step()
             print("Loss: {:.4f}".format(loss.data))
-        print("Epoch {0} spent {1} second".format(epoch, (time.time()-start_etime)))
+        print("Epoch {0} spent {1} second using memory of {2} Mbs".format(epoch, (time.time()-start_etime), emb_memory))
     embeddings = F.normalize(graphsage.aggregator(list(range(feat_data.shape[0]))), dim = 1)
     embeddings2 = graphsage.aggregator(list(range(feat_data.shape[0])))
     embeddings = embeddings.detach().cpu().numpy()
