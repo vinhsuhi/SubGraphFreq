@@ -17,6 +17,7 @@ from models.graphsage.prediction import BipartiteEdgePredLayer
 import pdb
 import time
 from copy import deepcopy
+import resource
 
 """
 Simple supervised GraphSAGE model as well as examples running the model
