@@ -224,6 +224,7 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
     embeddings = []
+    emb_time = 0
             
     args = parse_args()
 
@@ -243,13 +244,15 @@ if __name__ == "__main__":
             features, adj, degree, edges = create_data_for_GCN(G, num_nodes_label)
             st_emb_time = time.time()
             embeddings, emb_model = learn_embedding(features, adj, degree, edges)
-            print("embedding times: {:.4f}".format(time.time() - st_emb_time))
+            #print("embedding times: {:.4f}".format(time.time() - st_emb_time))
+            emb_time = time.time() - st_emb_time
             np.save('emb.npy', embeddings)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, num_nodes_label)
             st_emb_time = time.time()
             embeddings, embeddings2 = run_graph(graph_data, args)
-            print("embedding times: {:.4f}".format(time.time() - st_emb_time))
+            #print("embedding times: {:.4f}".format(time.time() - st_emb_time))
+            emb_time = time.time() - st_emb_time
 
     print("Clustering...")
     st_clustering_time = time.time()
@@ -280,6 +283,7 @@ if __name__ == "__main__":
 
     # Saving data for visualising
     print("Saving data for visuallise...")        
+    print("embedding times: {:.4f}".format(emb_time))
     save_visualize_data(embeddings,labels,'DBSCAN',G)        
 
     # all extracted subgraphs
