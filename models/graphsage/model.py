@@ -197,6 +197,7 @@ def run_graph(graph_data,args):
     n_iters = len(all_edges)//batch_size
      
     for epoch in range(args.epochs):
+        start_etime = time.time()
         print("Epoch {0}".format(epoch))
         np.random.shuffle(all_edges)
         for iter in tqdm(range(n_iters)):  ####### for iter in range(n_iters)
@@ -206,6 +207,7 @@ def run_graph(graph_data,args):
             loss.backward()
             optimizer.step()
             print("Loss: {:.4f}".format(loss.data))
+        print("Epoch {0} spent {1} second".format(epoch, (time.time()-start_etime)))
     embeddings = F.normalize(graphsage.aggregator(list(range(feat_data.shape[0]))), dim = 1)
     embeddings2 = graphsage.aggregator(list(range(feat_data.shape[0])))
     embeddings = embeddings.detach().cpu().numpy()
