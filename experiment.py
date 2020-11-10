@@ -181,12 +181,11 @@ def create_data_for_Graphsage(G, num_nodes_label):
     for node in G.nodes:
         features[node][G.nodes[node]['label']] = 1
     graphsage_G = nx.Graph()
+    graphsage_G.add_nodes_from([str(node) for node in G.nodes])
     graphsage_G.add_edges_from([(str(edge[0]),str(edge[1])) for edge in list(G.edges)])
+
     features = np.ones((num_nodes,args.feat_dim), dtype = float) 
-    # id2idx = {node:int(node) for node in list(graphsage_G.nodes)}
-    id2idx = dict()
-    for i, node in enumerate(list(G.nodes)):
-        id2idx[node] = i
+    id2idx = {node:int(node) for node in list(graphsage_G.nodes)}
     save_graph(features, graphsage_G, id2idx, args.data_name, args.dir)
     graph_data = load_data(args.prefix)
     return graph_data

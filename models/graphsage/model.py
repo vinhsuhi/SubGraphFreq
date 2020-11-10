@@ -111,7 +111,7 @@ class SupervisedGraphSage(nn.Module):
             sum1 = 0
             for neigh in self.adj_lists[node]:
                 sum1 += self.feat_data[neigh]
-            node_emb = torch.cat([self.feat_data[node],sum1]) # / len(self.adj_lists[node])])
+                node_emb = torch.cat([self.feat_data[node],sum1]) # / len(self.adj_lists[node])])
             emb_hop1[new_id2idx[node]] = node_emb
         
         emb_hop1 = self.linear1(emb_hop1)
