@@ -13,6 +13,7 @@ import os
 from collections import Counter
 import time
 from models.graphsage.prediction import BipartiteEdgePredLayer
+import resource
 
 
 def parse_args():
@@ -223,6 +224,8 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
     embeddings = []
+    emb_time = 0
+    emb_memory = 0
             
     args = parse_args()
 
@@ -240,19 +243,25 @@ if __name__ == "__main__":
     else:
         if args.model == "GCN":
             features, adj, degree, edges = create_data_for_GCN(G, num_nodes_label)
+            st_emb_time = time.time()
             embeddings, emb_model = learn_embedding(features, adj, degree, edges)
+            #print("embedding times: {:.4f}".format(time.time() - st_emb_time))
+            emb_time = time.time() - st_emb_time
+            emb_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
             np.save('emb.npy', embeddings)
         elif args.model == "Graphsage":
             graph_data = create_data_for_Graphsage(G, num_nodes_label)
             st_emb_time = time.time()
             embeddings, embeddings2 = run_graph(graph_data, args)
-            print("embedding times: {:.4f}".format(time.time() - st_emb_time))
+            #print("embedding times: {:.4f}".format(time.time() - st_emb_time))
+            emb_time = time.time() - st_emb_time
+            emb_memory = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
 
     print("Clustering...")
     st_clustering_time = time.time()
     #ep = 1e-6
-    #ep = 1e-9
-    ep = 1e-3
+    ep = 1e-9
+    #ep = 1e-3
     while True:
         print(ep)
         labels = clustering(embeddings, args.clustering_method, ep)
@@ -277,6 +286,7 @@ if __name__ == "__main__":
 
     # Saving data for visualising
     print("Saving data for visuallise...")        
+    print("embedding times: {:.4f}".format(emb_time))
     save_visualize_data(embeddings,labels,'DBSCAN',G)        
 
     # all extracted subgraphs
